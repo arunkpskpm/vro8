@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow xmlns="http://vmware.com/vco/workflow" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://vmware.com/vco/workflow http://vmware.com/vco/workflow/Workflow-v4.xsd" root-name="item3" object-name="workflow:name=generic" id="0d5662a5-8369-4604-9338-eeebe3e4c5d4" version="0.0.121" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+  <display-name><![CDATA[Add disk to VM]]></display-name>
+  <description><![CDATA[This workflow extends Hard Disk 1, the C:\ drive vmdk file to the size specified in GB and then copies a script from vRO into the target virtual machine which resizes the volume within the guest OS.]]></description>
+  <position y="36.31818181818181" x="65.0"></position>
+  <input>
+    <param name="vm" type="VC:VirtualMachine">
+      <description><![CDATA[Virtual machine to power off]]></description>
+    </param>
+    <param name="newSizeGb" type="number">
+      <description><![CDATA[new Size in GB]]></description>
+    </param>
+  </input>
+  <output>
+    <param name="scriptExitCodeOut" type="number"></param>
+    <param name="scriptOutputTextOut" type="string"></param>
+  </output>
+  <attrib name="vmUsername" type="string" read-only="false">
+    <value encoded="n"><![CDATA[administrator]]></value>
+    <description><![CDATA[Username for the virtual machine]]></description>
+  </attrib>
+  <attrib name="vmPassword" type="SecureString" read-only="false">
+    <value encoded="n"><![CDATA[9BG42L70L6FR76Y74Q6DH67T31H21ZCFA3D33X659F048L7375732V96A1E64TCBDCAEN3B7F351ND6E523DH9ECDC96I361D5C4OA15CE3EQCE47E8CG1E16B46XC39E34BTBE5470CI19B15AT21A3D25P215B46AOCBA70B9Y11961E2GA3B58B9I6AEF3DRB57522BG3C72E8DU]]></value>
+    <description><![CDATA[Password for the virtual machine]]></description>
+  </attrib>
+  <attrib name="diskIndex" type="number" read-only="false">
+    <value encoded="n"><![CDATA[__NULL__]]></value>
+  </attrib>
+  <attrib name="scriptConfigurationResource" type="ResourceElement" read-only="false">
+    <value encoded="n"><![CDATA[dunes://service.dunes.ch/ResourceElement?id='d0273f10-2c0a-42b5-a761-ed656298a4b9'&dunesName='ResourceElement']]></value>
+  </attrib>
+  <attrib name="scriptVariables" type="Array/CompositeType(stringToReplace:string,replacingString:string):scriptVariables" read-only="false">
+    <value encoded="n"><![CDATA[__NULL__]]></value>
+  </attrib>
+  <workflow-item name="item0" type="end" end-mode="0">
+    <position y="36.31818181818181" x="804.5"></position>
+  </workflow-item>
+  <workflow-item name="item3" out-name="item6" type="link" linked-workflow-id="9ec3d94a-cee9-434f-95cd-096fe809e56a">
+    <display-name><![CDATA[Add VMDK]]></display-name>
+    <in-binding>
+      <bind name="vm" type="VC:VirtualMachine" export-name="vm"></bind>
+      <bind name="newDiskSize" type="number" export-name="newSizeGb"></bind>
+    </in-binding>
+    <out-binding>
+      <bind name="diskIndexOut" type="number" export-name="diskIndex"></bind>
+    </out-binding>
+    <position y="46.31818181818181" x="185.0"></position>
+  </workflow-item>
+  <workflow-item name="item6" out-name="item4" type="custom-condition" alt-out-name="item8">
+    <display-name><![CDATA[Is Windows VM?]]></display-name>
+    <script encoded="false"><![CDATA[System.debug("Guest OS: " + vm.guestOS);
+
+return (vm.guestOS.indexOf("Windows") >= 0);]]></script>
+    <in-binding>
+      <bind name="vm" type="VC:VirtualMachine" export-name="vm"></bind>
+    </in-binding>
+    <position y="36.31818181818181" x="324.5"></position>
+  </workflow-item>
+  <workflow-item name="item7" type="end" end-mode="0">
+    <position y="163.59090909090907" x="364.5"></position>
+  </workflow-item>
+  <workflow-item name="item8" out-name="item7" type="task">
+    <display-name><![CDATA[Print linux message]]></display-name>
+    <script encoded="false"><![CDATA[System.log("Please extend the disk manually inside the guest OS");]]></script>
+    <in-binding></in-binding>
+    <out-binding></out-binding>
+    <position y="109.95454545454544" x="325.0"></position>
+  </workflow-item>
+  <workflow-item name="item1" out-name="item0" type="link" linked-workflow-id="24c23d4c-12be-4889-aa66-29b8a450f1cd">
+    <display-name><![CDATA[Run script in VM guest]]></display-name>
+    <in-binding>
+      <bind name="vm" type="VC:VirtualMachine" export-name="vm"></bind>
+      <bind name="vmUsername" type="string" export-name="vmUsername"></bind>
+      <bind name="vmPassword" type="SecureString" export-name="vmPassword"></bind>
+      <bind name="scriptConfigurationResource" type="ResourceElement" export-name="scriptConfigurationResource"></bind>
+      <bind name="scriptVariables" type="Array/CompositeType(stringToReplace:string,replacingString:string):scriptVariables" export-name="scriptVariables"></bind>
+    </in-binding>
+    <out-binding>
+      <bind name="scriptExitCodeOut" type="number" export-name="scriptExitCodeOut"></bind>
+      <bind name="scriptOutputTextOut" type="string" export-name="scriptOutputTextOut"></bind>
+    </out-binding>
+    <description><![CDATA[Run a script in a guest using existing script configurations. Replaces variables in the script. Optionaly copy additional file and replace its variables as well.
+
+If no working directory is specified:
+- it is set to the guest default temp directory if there is a resource file copied
+- it is set to default (c:\windows\system32 for Windows /root for Linux) if there is no resource file copied.]]></description>
+    <position y="46.31818181818181" x="604.5"></position>
+  </workflow-item>
+  <workflow-item name="item4" out-name="item1" type="task">
+    <display-name><![CDATA[Replace parameters in script]]></display-name>
+    <script encoded="false"><![CDATA[scriptVariables = System.getModule("com.vmware.coe.copyAndRunScriptsInGuest").addScriptVariableToArrayOfScriptVariables(scriptVariables,"[INDEX]",diskIndex);]]></script>
+    <in-binding>
+      <bind name="scriptVariables" type="Array/CompositeType(stringToReplace:string,replacingString:string):scriptVariables" export-name="scriptVariables"></bind>
+      <bind name="diskIndex" type="number" export-name="diskIndex"></bind>
+    </in-binding>
+    <out-binding>
+      <bind name="scriptVariables" type="Array/CompositeType(stringToReplace:string,replacingString:string):scriptVariables" export-name="scriptVariables"></bind>
+    </out-binding>
+    <position y="46.31818181818181" x="464.5"></position>
+  </workflow-item>
+  <presentation>
+    <p-param name="vm">
+      <desc><![CDATA[Virtual machine to upgrade]]></desc>
+    </p-param>
+    <p-param name="newSizeGb">
+      <desc><![CDATA[new Size in GB]]></desc>
+    </p-param>
+  </presentation>
+</workflow>

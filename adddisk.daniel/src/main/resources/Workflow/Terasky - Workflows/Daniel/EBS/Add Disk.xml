@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow xmlns="http://vmware.com/vco/workflow" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://vmware.com/vco/workflow http://vmware.com/vco/workflow/Workflow-v4.xsd" root-name="item4" object-name="workflow:name=generic" id="71f26115-a80b-4fa4-aa78-2a3b6e2957f2" version="0.0.24" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+  <display-name><![CDATA[Add Disk]]></display-name>
+  <position y="27.227272727272727" x="85.0"></position>
+  <input>
+    <param name="vmProperties" type="Properties">
+      <description><![CDATA[payload of properties from vRA]]></description>
+    </param>
+  </input>
+  <attrib name="vm" type="VC:VirtualMachine" read-only="false">
+    <value encoded="n"><![CDATA[__NULL__]]></value>
+    <description><![CDATA[vm value after translated from vm admin uuid from vcenter server lookup]]></description>
+  </attrib>
+  <attrib name="vmUuid" type="string" read-only="false">
+    <value encoded="n"><![CDATA[]]></value>
+    <description><![CDATA[admin uuid used in vcenter lookup to get vm name]]></description>
+  </attrib>
+  <attrib name="newSizeGb" type="number" read-only="false">
+    <value encoded="n"><![CDATA[__NULL__]]></value>
+    <description><![CDATA[disk size required for hdd 1]]></description>
+  </attrib>
+  <workflow-item name="item0" type="end" end-mode="0">
+    <position y="27.227272727272727" x="864.5"></position>
+  </workflow-item>
+  <workflow-item name="item1" out-name="item2" type="task">
+    <display-name><![CDATA[Get properties from payload]]></display-name>
+    <script encoded="false"><![CDATA[var machine = vmProperties.get("machine");
+
+System.log("VM name: " + machine.get("name"));
+System.debug("VM MoRef: " + machine.get("externalReference"));
+
+var vmProperties = machine.get("properties");
+
+var totalVmSize = vmProperties.get("VirtualMachine.Admin.TotalDiskUsage");
+System.log("Current total VM storage size: " + totalVmSize);
+var requestedSize = vmProperties.get("Cafe.Shim.VirtualMachine.TotalStorageSize");
+System.log("Desired storage size: " + requestedSize);
+
+var newSizeGb = requestedSize - (totalVmSize / 1024);
+System.log("A new disk with size " + newSizeGb + " will be created on the VM");
+
+var vmUuid = vmProperties.get('VirtualMachine.Admin.UUID');]]></script>
+    <in-binding>
+      <bind name="vmProperties" type="Properties" export-name="vmProperties"></bind>
+      <bind name="newSizeGb" type="number" export-name="newSizeGb"></bind>
+    </in-binding>
+    <out-binding>
+      <bind name="vmUuid" type="string" export-name="vmUuid"></bind>
+      <bind name="newSizeGb" type="number" export-name="newSizeGb"></bind>
+    </out-binding>
+    <position y="37.22727272727273" x="344.5"></position>
+  </workflow-item>
+  <workflow-item name="item2" out-name="item3" type="task" script-module="com.vmware.vcac.asd/findVcVmByUuid">
+    <display-name><![CDATA[findVcVmByUuid]]></display-name>
+    <script encoded="false"><![CDATA[//Auto generated script, cannot be modified !
+actionResult = System.getModule("com.vmware.vcac.asd").findVcVmByUuid(vmUuid) ;]]></script>
+    <in-binding>
+      <bind name="vmUuid" type="string" export-name="vmUuid">
+        <description><![CDATA[The UUID of the desired Virtual Machine]]></description>
+      </bind>
+    </in-binding>
+    <out-binding>
+      <bind name="actionResult" type="VC:VirtualMachine" export-name="vm"></bind>
+    </out-binding>
+    <position y="37.22727272727273" x="504.5"></position>
+  </workflow-item>
+  <workflow-item name="item4" out-name="item1" type="task">
+    <display-name><![CDATA[Display payload]]></display-name>
+    <script encoded="false"><![CDATA[System.debug("******************** System Information **********************************");
+			
+//Displaying vCAC VM properties
+if (payload != null) {
+	var log = "";
+	log += "vCAC VM properties :\n";
+	var array = new Array();
+	for each (var key in payload.keys) {
+		array.push(key + " : " + payload.get(key));
+	}
+	array.sort();
+	
+	for each (var line in array) {
+		log += "\t" + line + "\n";
+	}	
+	System.debug(log);
+}
+vmName = payload.machine.get("name");
+
+var vmProperties = payload.machine.get("properties");
+
+for each (var key in vmProperties.keys) {
+	System.debug("Key: "+key+" - Value: "+vmProperties.get(key));
+}
+
+System.debug("*********************************************************************");
+]]></script>
+    <in-binding>
+      <bind name="payload" type="Properties" export-name="vmProperties"></bind>
+    </in-binding>
+    <out-binding></out-binding>
+    <position y="37.22727272727273" x="184.5"></position>
+  </workflow-item>
+  <workflow-item name="item3" out-name="item0" type="link" linked-workflow-id="0d5662a5-8369-4604-9338-eeebe3e4c5d4">
+    <display-name><![CDATA[Add disk to VM]]></display-name>
+    <in-binding>
+      <bind name="vm" type="VC:VirtualMachine" export-name="vm">
+        <description><![CDATA[Virtual machine to power off]]></description>
+      </bind>
+      <bind name="newSizeGb" type="number" export-name="newSizeGb">
+        <description><![CDATA[new Size in GB]]></description>
+      </bind>
+    </in-binding>
+    <out-binding></out-binding>
+    <description><![CDATA[This workflow extends Hard Disk 1, the C:\ drive vmdk file to the size specified in GB and then copies a script from vRO into the target virtual machine which resizes the volume within the guest OS.]]></description>
+    <position y="37.22727272727273" x="665.0"></position>
+  </workflow-item>
+  <presentation>
+    <p-param name="vmProperties">
+      <desc><![CDATA[payload]]></desc>
+    </p-param>
+  </presentation>
+</workflow>

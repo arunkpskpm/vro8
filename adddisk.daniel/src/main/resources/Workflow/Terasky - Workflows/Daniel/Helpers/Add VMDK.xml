@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow xmlns="http://vmware.com/vco/workflow" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://vmware.com/vco/workflow http://vmware.com/vco/workflow/Workflow-v4.xsd" root-name="item1" object-name="workflow:name=generic" id="9ec3d94a-cee9-434f-95cd-096fe809e56a" version="0.0.5" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+  <display-name><![CDATA[Add VMDK]]></display-name>
+  <position y="50.0" x="100.0"></position>
+  <input>
+    <param name="vm" type="VC:VirtualMachine"></param>
+    <param name="newDiskSize" type="number"></param>
+  </input>
+  <output>
+    <param name="diskIndexOut" type="number"></param>
+  </output>
+  <attrib name="datastore" type="VC:Datastore" read-only="false">
+    <description><![CDATA[Datastore in which to put the virtual disk file]]></description>
+  </attrib>
+  <attrib name="diskIndex" type="number" read-only="false">
+    <description><![CDATA[Disk index]]></description>
+  </attrib>
+  <attrib name="diskMode" type="VC:VirtualDiskMode" read-only="false">
+    <value encoded="n"><![CDATA[dunes://service.dunes.ch/CustomSDKObject?id='persistent'&dunesName='VC:VirtualDiskMode']]></value>
+    <description><![CDATA[Disk persistence mode]]></description>
+  </attrib>
+  <attrib name="thinProvisioned" type="boolean" read-only="false">
+    <value encoded="n"><![CDATA[true]]></value>
+    <description><![CDATA[Use thin provisioning?]]></description>
+  </attrib>
+  <workflow-item name="item0" type="end" end-mode="0">
+    <position y="45.40909090909091" x="664.5"></position>
+  </workflow-item>
+  <workflow-item name="item1" out-name="item2" type="task">
+    <display-name><![CDATA[Get datastore and index]]></display-name>
+    <script encoded="false"><![CDATA[// Get ddisk index
+var lastDiskIndex = 0;
+var devices = vm.config.hardware.device;
+// Loop through all devices
+for each (var device in devices)
+{
+	if (device.deviceInfo.label.indexOf("Hard disk") >= 0)
+	{
+		// Get disk index
+		if (device.unitNumber > lastDiskIndex)
+			lastDiskIndex = device.unitNumber;
+			
+		// Get disk datastore
+		datastore = device.backing.datastore;
+	}
+}
+
+diskIndex = lastDiskIndex + 1;
+System.log("New disk will be created in index: " + diskIndex);
+System.log("New disk will be created in datastore: " + datastore.name);]]></script>
+    <in-binding>
+      <bind name="vm" type="VC:VirtualMachine" export-name="vm"></bind>
+    </in-binding>
+    <out-binding>
+      <bind name="datastore" type="VC:Datastore" export-name="datastore"></bind>
+      <bind name="diskIndex" type="number" export-name="diskIndex"></bind>
+    </out-binding>
+    <position y="55.40909090909091" x="204.5"></position>
+  </workflow-item>
+  <workflow-item name="item2" out-name="item3" type="link" linked-workflow-id="BD8080808080808080808080808080801BC280800122528313869552e41805bb1">
+    <display-name><![CDATA[Add disk]]></display-name>
+    <in-binding>
+      <bind name="vm" type="VC:VirtualMachine" export-name="vm">
+        <description><![CDATA[Virtual machine to which to add the disk]]></description>
+      </bind>
+      <bind name="datastore" type="VC:Datastore" export-name="datastore">
+        <description><![CDATA[Datastore in which to put the virtual disk file]]></description>
+      </bind>
+      <bind name="diskIndex" type="number" export-name="diskIndex">
+        <description><![CDATA[Disk index]]></description>
+      </bind>
+      <bind name="diskSize" type="number" export-name="newDiskSize">
+        <description><![CDATA[Disk size (in GB)]]></description>
+      </bind>
+      <bind name="diskMode" type="VC:VirtualDiskMode" export-name="diskMode">
+        <description><![CDATA[Disk persistence mode]]></description>
+      </bind>
+      <bind name="scsiBusNumber" type="number" explicitly-not-bound="true">
+        <description><![CDATA[SCSI controller bus number]]></description>
+      </bind>
+      <bind name="thinProvisioned" type="boolean" export-name="thinProvisioned">
+        <description><![CDATA[Use thin provisioning?]]></description>
+      </bind>
+    </in-binding>
+    <out-binding></out-binding>
+    <description><![CDATA[Adds a virtual disk to a virtual machine.]]></description>
+    <position y="55.40909090909091" x="344.5"></position>
+  </workflow-item>
+  <workflow-item name="item3" out-name="item0" type="task">
+    <display-name><![CDATA[Set output parameters]]></display-name>
+    <script encoded="false"><![CDATA[diskIndexOut = diskIndex;]]></script>
+    <in-binding>
+      <bind name="diskIndex" type="number" export-name="diskIndex"></bind>
+    </in-binding>
+    <out-binding>
+      <bind name="diskIndexOut" type="number" export-name="diskIndexOut"></bind>
+    </out-binding>
+    <position y="55.40909090909091" x="484.5"></position>
+  </workflow-item>
+  <presentation>
+    <p-param name="vm">
+      <desc><![CDATA[vm]]></desc>
+    </p-param>
+    <p-param name="newDiskSize">
+      <desc><![CDATA[newDiskSize]]></desc>
+    </p-param>
+  </presentation>
+</workflow>

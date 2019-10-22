@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Exported from [server]</comment>
+<entry key="categoryPath">com.vmware.pso.helpers</entry>
+<entry key="categoryPathEscaped">Y29t.dm13YXJl.cHNv.aGVscGVycw==</entry>
+<entry key="name">getDirectoryPathFromFilePath</entry>
+<entry key="type">ScriptModule</entry>
+<entry key="id">ae5a3cc4-9cb8-4b06-9cf0-3c898ba40dc1</entry>
+</properties>

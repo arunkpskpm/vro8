@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Exported from [server]</comment>
+<entry key="categoryPath">Library.Guest Script Manager</entry>
+<entry key="categoryPathEscaped">TGlicmFyeQ==.R3Vlc3QgU2NyaXB0IE1hbmFnZXI=</entry>
+<entry key="name">Run script in VM guest</entry>
+<entry key="type">Workflow</entry>
+<entry key="id">24c23d4c-12be-4889-aa66-29b8a450f1cd</entry>
+</properties>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Exported from [server]</comment>
+<entry key="categoryPath">Library.Guest Script Manager.Guest Operations</entry>
+<entry key="categoryPathEscaped">TGlicmFyeQ==.R3Vlc3QgU2NyaXB0IE1hbmFnZXI=.R3Vlc3QgT3BlcmF0aW9ucw==</entry>
+<entry key="name">Create temporary file in guest (with Linux permissions)</entry>
+<entry key="type">Workflow</entry>
+<entry key="id">d67befad-32d0-4217-aa7f-afcd793a916c</entry>
+</properties>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Exported from [server]</comment>
+<entry key="categoryPath">Library.Guest Script Manager.Guest Operations</entry>
+<entry key="categoryPathEscaped">TGlicmFyeQ==.R3Vlc3QgU2NyaXB0IE1hbmFnZXI=.R3Vlc3QgT3BlcmF0aW9ucw==</entry>
+<entry key="name">Run Script In Guest</entry>
+<entry key="type">Workflow</entry>
+<entry key="id">f8cd5692-92a0-46b6-a98d-53ffd878d779</entry>
+</properties>

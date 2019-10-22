@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Exported from [server]</comment>
+<entry key="categoryPath">com.vmware.coe.library.resourceElements</entry>
+<entry key="categoryPathEscaped">Y29t.dm13YXJl.Y29l.bGlicmFyeQ==.cmVzb3VyY2VFbGVtZW50cw==</entry>
+<entry key="name">getOtherResourceElements</entry>
+<entry key="type">ScriptModule</entry>
+<entry key="id">bf1eefcd-9bad-4666-b6af-fcd788d5befa</entry>
+</properties>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dunes-script-module name="createVirtualDiskFlatVer2ConfigSpec" result-type="Any" api-version="6.0.0" id="fe87a8ec-9216-41e2-b847-bbb61a974fe2" version="0.3.0" allowed-operations="vef">
+  <description><![CDATA[Create a new VimVirtualDeviceConfigSpec for a VimVirtualDiskFlatVer2BackingInfo.
+The VirtualDisk.FlatVer2BackingInfo data object type contains information about backing a virtual disk using a virtual disk file on the host, in the flat file format used by GSX Server 3.x, ESX Server 2.x, and ESX Server 3.x. Flat disks are allocated when created, unlike sparse disks, which grow as needed. ]]></description>
+  <param n="sizeInGB" t="Any"><![CDATA[]]></param>
+  <param n="datastore" t="VC:Datastore"><![CDATA[]]></param>
+  <param n="controllerKey" t="number"><![CDATA[]]></param>
+  <param n="diskIndex" t="number"><![CDATA[]]></param>
+  <param n="diskMode" t="VC:VirtualDiskMode"><![CDATA[]]></param>
+  <param n="thinProvisioned" t="boolean"><![CDATA[]]></param>
+  <script encoded="false"><![CDATA[// Create Disk BackingInfo
+var diskBackingInfo = new VcVirtualDiskFlatVer2BackingInfo();
+diskBackingInfo.diskMode = diskMode.value;
+var datastorePath = "[" + datastore.info.name + "]";
+diskBackingInfo.fileName = datastorePath;
+diskBackingInfo.thinProvisioned = thinProvisioned;
+// Create VirtualDisk
+var disk = new VcVirtualDisk();
+disk.backing = diskBackingInfo;
+disk.controllerKey = controllerKey;
+disk.key = -2;
+// Index 0 is not valid since Vi 4.0 (probably a bug)
+disk.unitNumber = diskIndex;
+disk.capacityInKB = parseInt( "" + (sizeInGB*1024*1024) );
+// Create Disk ConfigSpec
+deviceConfigSpec = new VcVirtualDeviceConfigSpec();
+deviceConfigSpec.device = disk;
+deviceConfigSpec.fileOperation = VcVirtualDeviceConfigSpecFileOperation.create;
+deviceConfigSpec.operation = VcVirtualDeviceConfigSpecOperation.add;
+
+return deviceConfigSpec;
+]]></script>
+</dunes-script-module>

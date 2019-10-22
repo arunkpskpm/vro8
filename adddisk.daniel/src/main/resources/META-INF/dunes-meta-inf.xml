@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>ts-vra.terasky.local:443</comment>
+<entry key="vso-build-nb">12923317</entry>
+<entry key="pkg-name">adddisk.daniel</entry>
+<entry key="used-plugins">VC#6.5.0</entry>
+<entry key="pkg-owner">O=VMware,OU=Unknown,CN=vRO vra-va.devfactory.local fb298e3d-72ea-4ca2-8ee2-e2cf7c6ad0a8</entry>
+<entry key="vso-version">7.6.0.12923317</entry>
+<entry key="pkg-id">ff80808168a0ccc601691f964f530364</entry>
+</properties>

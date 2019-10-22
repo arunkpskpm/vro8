@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Exported from [server]</comment>
+<entry key="version">0.0.0</entry>
+<entry key="mimetype">application/octet-stream</entry>
+<entry key="categoryPath">COE.Guest tools</entry>
+<entry key="categoryPathEscaped">Q09F.R3Vlc3QgdG9vbHM=</entry>
+<entry key="name">cmdANSI.exe</entry>
+<entry key="type">ResourceElement</entry>
+<entry key="description">Imported from : &apos;/Users/christophe/Downloads/cmdansi/cmdANSI.exe&apos; on server 192.168.1.18:8281</entry>
+<entry key="id">352d998c-6af5-4af9-8c4f-da4a2a2dff2b</entry>
+</properties>

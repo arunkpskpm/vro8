@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow xmlns="http://vmware.com/vco/workflow" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://vmware.com/vco/workflow http://vmware.com/vco/workflow/Workflow-v4.xsd" root-name="item4" object-name="Workflow:name=generic" id="BD8080808080808080808080808080801BC280800122528313869552e41805bb1" version="0.2.0" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+  <display-name><![CDATA[Add disk]]></display-name>
+  <description><![CDATA[Adds a virtual disk to a virtual machine.]]></description>
+  <ref-types><![CDATA[(VC:VirtualMachine)]]></ref-types>
+  <position y="0.0" x="140.0"></position>
+  <input>
+    <param name="vm" type="VC:VirtualMachine">
+      <description><![CDATA[Virtual machine to which to add the disk]]></description>
+    </param>
+    <param name="datastore" type="VC:Datastore">
+      <description><![CDATA[Datastore in which to put the virtual disk file]]></description>
+    </param>
+    <param name="diskIndex" type="number">
+      <description><![CDATA[Disk index]]></description>
+    </param>
+    <param name="diskSize" type="number">
+      <description><![CDATA[Disk size (in GB)]]></description>
+    </param>
+    <param name="diskMode" type="VC:VirtualDiskMode">
+      <description><![CDATA[Disk persistence mode]]></description>
+    </param>
+    <param name="scsiBusNumber" type="number">
+      <description><![CDATA[SCSI controller bus number]]></description>
+    </param>
+    <param name="thinProvisioned" type="boolean">
+      <description><![CDATA[Use thin provisioning?]]></description>
+    </param>
+  </input>
+  <attrib name="scsiControllerKey" type="number" read-only="false">
+    <value encoded="n"><![CDATA[0]]></value>
+    <description><![CDATA[LSI or Bus Logic SCSI controller key]]></description>
+  </attrib>
+  <attrib name="task" type="VC:Task" read-only="false">
+    <value encoded="n"><![CDATA[__NULL__]]></value>
+    <description><![CDATA[Task to await]]></description>
+  </attrib>
+  <attrib name="progress" type="boolean" read-only="false">
+    <value encoded="n"><![CDATA[false]]></value>
+    <description><![CDATA[Log progress while waiting for the task to complete]]></description>
+  </attrib>
+  <attrib name="pollRate" type="number" read-only="false">
+    <value encoded="n"><![CDATA[1.0]]></value>
+    <description><![CDATA[Polling rate for the task state, in seconds]]></description>
+  </attrib>
+  <attrib name="noContollerError" type="string" read-only="false">
+    <value encoded="n"><![CDATA[Error: No controller found]]></value>
+    <description><![CDATA[Error if virtual machine has no IDE controller]]></description>
+  </attrib>
+  <workflow-item name="item0" out-name="item1" type="task">
+    <display-name><![CDATA[Add disk]]></display-name>
+    <script encoded="false"><![CDATA[var configSpec = new VcVirtualMachineConfigSpec();
+var deviceConfigSpecs = new Array();
+var deviceConfigSpec;
+
+// Add/Create the disk
+deviceConfigSpec = System.getModule("com.vmware.library.vc.vm.spec.config.device").createVirtualDiskFlatVer2ConfigSpec(
+	diskSize, datastore, scsiControllerKey, diskIndex, VcVirtualDiskMode.fromString(diskMode.name), thinProvisioned );
+deviceConfigSpecs[0] = deviceConfigSpec;
+
+// List of devices
+configSpec.deviceChange = deviceConfigSpecs;
+
+// Launch the reconfigVM task
+task = vm.reconfigVM_Task( configSpec );
+]]></script>
+    <in-binding>
+      <bind name="vm" type="VC:VirtualMachine" export-name="vm"></bind>
+      <bind name="scsiControllerKey" type="number" export-name="scsiControllerKey"></bind>
+      <bind name="diskSize" type="number" export-name="diskSize"></bind>
+      <bind name="diskMode" type="VC:VirtualDiskMode" export-name="diskMode"></bind>
+      <bind name="diskIndex" type="number" export-name="diskIndex"></bind>
+      <bind name="datastore" type="VC:Datastore" export-name="datastore"></bind>
+      <bind name="thinProvisioned" type="boolean" export-name="thinProvisioned"></bind>
+    </in-binding>
+    <out-binding>
+      <bind name="task" type="VC:Task" export-name="task"></bind>
+    </out-binding>
+    <position y="220.0" x="100.0"></position>
+  </workflow-item>
+  <workflow-item name="item5" out-name="item6" type="task">
+    <display-name><![CDATA[Retrieve Scsi controller found ?]]></display-name>
+    <script encoded="false"><![CDATA[scsiControllerKey = -1;
+var devices = vm.config.hardware.device;
+var isScsiBusNumberInvalid = true;
+if(scsiBusNumber==null || scsiBusNumber<0)
+	scsiBusNumber=0;
+if ( devices != null )  {
+	for ( device in devices )  {
+		if ( devices[device] instanceof VcVirtualBusLogicController || devices[device] instanceof VcVirtualLsiLogicController 
+		|| devices[device] instanceof VcParaVirtualSCSIController || devices[device] instanceof VcVirtualLsiLogicSASController )  {
+			if(scsiBusNumber==devices[device].busNumber){
+				scsiControllerKey = devices[device].key;
+				isScsiBusNumberInvalid = false;
+				System.log( "SCSI controller found. (Key: " + scsiControllerKey + ")" );
+				break;
+			}
+		}
+	}
+}
+if(isScsiBusNumberInvalid){
+	System.log( "SCSI controller not found. The bus number entered is invalid" );
+}
+
+]]></script>
+    <in-binding>
+      <bind name="vm" type="VC:VirtualMachine" export-name="vm"></bind>
+      <bind name="scsiBusNumber" type="number" export-name="scsiBusNumber"></bind>
+    </in-binding>
+    <out-binding>
+      <bind name="scsiControllerKey" type="number" export-name="scsiControllerKey"></bind>
+    </out-binding>
+    <position y="100.0" x="100.0"></position>
+  </workflow-item>
+  <workflow-item name="item6" out-name="item0" type="condition" alt-out-name="item2" comparator="0">
+    <display-name><![CDATA[Scsi controller found ?]]></display-name>
+    <script encoded="false"><![CDATA[//Generated by the system, cannot be edited
+return (scsiControllerKey >= 0.0) ;]]></script>
+    <in-binding>
+      <bind name="scsiControllerKey" type="number" export-name="scsiControllerKey"></bind>
+    </in-binding>
+    <condition name="scsiControllerKey" type="number" comparator="5" label="null">0.0</condition>
+    <position y="150.0" x="100.0"></position>
+  </workflow-item>
+  <workflow-item name="item1" out-name="item3" type="task" script-module="com.vmware.library.vc.basic/vim3WaitTaskEnd">
+    <display-name><![CDATA[vim3WaitTaskEnd]]></display-name>
+    <script encoded="false"><![CDATA[//Auto generated script, cannot be modified !
+actionResult = System.getModule("com.vmware.library.vc.basic").vim3WaitTaskEnd(task,progress,pollRate) ;]]></script>
+    <in-binding>
+      <bind name="task" type="VC:Task" export-name="task">
+        <description><![CDATA[Task to Wait for]]></description>
+      </bind>
+      <bind name="progress" type="boolean" export-name="progress">
+        <description><![CDATA[Log progess while waiting for the task]]></description>
+      </bind>
+      <bind name="pollRate" type="number" export-name="pollRate">
+        <description><![CDATA[Polling rate for the task state [seconds]]]></description>
+      </bind>
+    </in-binding>
+    <out-binding>
+      <bind name="actionResult" type="Any" explicitly-not-bound="true" export-name="NULL"></bind>
+    </out-binding>
+    <description><![CDATA[Wait a VIM 3 Task to end.
+When task ended, return the ]]></description>
+    <position y="280.0" x="100.0"></position>
+  </workflow-item>
+  <workflow-item name="item2" throw-bind-name="noContollerError" type="end" end-mode="1">
+    <position y="150.0" x="260.0"></position>
+  </workflow-item>
+  <workflow-item name="item3" type="end" end-mode="0">
+    <position y="330.0" x="140.0"></position>
+  </workflow-item>
+  <workflow-item name="item4" out-name="item5" type="task">
+    <display-name><![CDATA[check Params]]></display-name>
+    <script encoded="false"><![CDATA[if (diskSize < 0.01 ) {
+	throw ("Error, invalid parameter. Disk size should be no less than 0.01 ");
+}]]></script>
+    <in-binding>
+      <bind name="diskSize" type="number" export-name="diskSize"></bind>
+    </in-binding>
+    <out-binding></out-binding>
+    <position y="60.0" x="100.0"></position>
+  </workflow-item>
+  <presentation>
+    <p-step>
+      <title><![CDATA[VM]]></title>
+      <p-param name="vm">
+        <desc><![CDATA[Virtual machine to which to add the disk]]></desc>
+        <p-qual name="mandatory"><![CDATA[true]]></p-qual>
+        <p-qual name="show-select-as"><![CDATA[list]]></p-qual>
+        <p-qual name="contextualParameter"><![CDATA[]]></p-qual>
+      </p-param>
+    </p-step>
+    <p-step>
+      <title><![CDATA[Disk]]></title>
+      <p-group>
+        <title><![CDATA[Disk information]]></title>
+        <desc><![CDATA['Disk index' must be between 0 and 15 (and not 7 as it's reserved by spec)]]></desc>
+        <p-param name="datastore">
+          <desc><![CDATA[Datastore in which to put the virtual disk file]]></desc>
+          <p-qual name="mandatory"><![CDATA[true]]></p-qual>
+          <p-qual name="show-select-as"><![CDATA[list]]></p-qual>
+        </p-param>
+        <p-param name="diskMode">
+          <desc><![CDATA[Disk persistence mode]]></desc>
+          <p-qual kind="static" name="mandatory" type="boolean"><![CDATA[true]]></p-qual>
+        </p-param>
+        <p-param name="diskIndex">
+          <desc><![CDATA[Disk index]]></desc>
+          <p-qual kind="static" name="numberFormat" type="String"><![CDATA[#]]></p-qual>
+          <p-qual kind="static" name="minNumberValue" type="Number"><![CDATA[0.0]]></p-qual>
+          <p-qual kind="static" name="maxNumberValue" type="Number"><![CDATA[15.0]]></p-qual>
+          <p-qual name="mandatory"><![CDATA[true]]></p-qual>
+          <p-qual kind="ognl" name="ognlValidator" type="String"><![CDATA[(#diskIndex != 7 ? "": "7 is not valid" )]]></p-qual>
+        </p-param>
+        <p-param name="diskSize">
+          <desc><![CDATA[Disk size (in GB)]]></desc>
+          <p-qual name="mandatory"><![CDATA[true]]></p-qual>
+          <p-qual kind="static" name="minNumberValue" type="Number"><![CDATA[0.01]]></p-qual>
+        </p-param>
+        <p-param name="scsiBusNumber">
+          <desc><![CDATA[SCSI controller bus number]]></desc>
+          <p-qual kind="static" name="numberFormat" type="String"><![CDATA[#]]></p-qual>
+          <p-qual kind="static" name="minNumberValue" type="Number"><![CDATA[0]]></p-qual>
+        </p-param>
+        <p-param name="thinProvisioned">
+          <desc><![CDATA[Use thin provisioning?]]></desc>
+        </p-param>
+      </p-group>
+    </p-step>
+  </presentation>
+</workflow>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Exported from [server]</comment>
+<entry key="categoryPath">com.vmware.library.vc.basic</entry>
+<entry key="categoryPathEscaped">Y29t.dm13YXJl.bGlicmFyeQ==.dmM=.YmFzaWM=</entry>
+<entry key="name">vim3WaitTaskEnd</entry>
+<entry key="type">ScriptModule</entry>
+<entry key="id">99afccd7-9fcc-4dc2-82b7-586de690364e</entry>
+</properties>

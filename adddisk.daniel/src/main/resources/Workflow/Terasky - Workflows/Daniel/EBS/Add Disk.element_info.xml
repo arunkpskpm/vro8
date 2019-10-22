@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Exported from [server]</comment>
+<entry key="categoryPath">Terasky - Workflows.Daniel.EBS</entry>
+<entry key="categoryPathEscaped">VGVyYXNreSAtIFdvcmtmbG93cw==.RGFuaWVs.RUJT</entry>
+<entry key="name">Add Disk</entry>
+<entry key="type">Workflow</entry>
+<entry key="id">71f26115-a80b-4fa4-aa78-2a3b6e2957f2</entry>
+</properties>

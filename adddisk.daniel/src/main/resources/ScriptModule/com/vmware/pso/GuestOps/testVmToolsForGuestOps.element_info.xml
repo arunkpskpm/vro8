@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Exported from [server]</comment>
+<entry key="categoryPath">com.vmware.pso.GuestOps</entry>
+<entry key="categoryPathEscaped">Y29t.dm13YXJl.cHNv.R3Vlc3RPcHM=</entry>
+<entry key="name">testVmToolsForGuestOps</entry>
+<entry key="type">ScriptModule</entry>
+<entry key="id">377d4001-bcc0-491f-820f-1e0b98dc4138</entry>
+</properties>

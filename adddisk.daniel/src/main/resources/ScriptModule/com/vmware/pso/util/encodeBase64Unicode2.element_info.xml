@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Exported from [server]</comment>
+<entry key="categoryPath">com.vmware.pso.util</entry>
+<entry key="categoryPathEscaped">Y29t.dm13YXJl.cHNv.dXRpbA==</entry>
+<entry key="name">encodeBase64Unicode2</entry>
+<entry key="type">ScriptModule</entry>
+<entry key="id">bdb05d62-c530-4e3f-8774-54150cf8fa95</entry>
+</properties>

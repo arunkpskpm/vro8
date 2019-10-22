@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Exported from [server]</comment>
+<entry key="categoryPath">com.vmware.library.vc.vm.spec.config.device</entry>
+<entry key="categoryPathEscaped">Y29t.dm13YXJl.bGlicmFyeQ==.dmM=.dm0=.c3BlYw==.Y29uZmln.ZGV2aWNl</entry>
+<entry key="name">createVirtualDiskFlatVer2ConfigSpec</entry>
+<entry key="type">ScriptModule</entry>
+<entry key="id">fe87a8ec-9216-41e2-b847-bbb61a974fe2</entry>
+</properties>

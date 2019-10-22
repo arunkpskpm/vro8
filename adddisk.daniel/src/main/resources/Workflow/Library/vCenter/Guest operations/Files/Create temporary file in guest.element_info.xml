@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Exported from [server]</comment>
+<entry key="categoryPath">Library.vCenter.Guest operations.Files</entry>
+<entry key="categoryPathEscaped">TGlicmFyeQ==.dkNlbnRlcg==.R3Vlc3Qgb3BlcmF0aW9ucw==.RmlsZXM=</entry>
+<entry key="name">Create temporary file in guest</entry>
+<entry key="type">Workflow</entry>
+<entry key="id">C9808080808080808080808080808080DA80808001322751030482b80adf61e7c</entry>
+</properties>
