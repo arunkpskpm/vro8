@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item1" object-name="workflow:name=generic" id="bae73b3b-01a1-4181-b867-0da490a93997" editor-version="2.0" version="1.0.0" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
+    <display-name>test1</display-name>
+    <position y="50.0" x="100.0"/>
+    <input>
+        <param name="in_0" type="string"/>
+    </input>
+    <output>
+        <param name="out_1" type="string"/>
+    </output>
+    <attrib name="var_0" type="string">
+        <value encoded="n"/>
+    </attrib>
+    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
+        <position y="50.0" x="300.0"/>
+    </workflow-item>
+    <workflow-item name="item1" out-name="item0" type="task" comparator="0">
+        <display-name>Scriptable task</display-name>
+        <script encoded="false">System.log("blabla")&#13;
+</script>
+        <in-binding>
+            <bind name="in_0" type="string" export-name="in_0"/>
+            <bind name="var_0" type="string" export-name="var_0"/>
+        </in-binding>
+        <out-binding>
+            <bind name="out_1" type="string" export-name="out_1"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="57.3984375" x="144.0"/>
+    </workflow-item>
+    <presentation/>
+</ns2:workflow>
