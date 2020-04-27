@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item1" object-name="workflow:name=generic" id="6ea7af92-147d-4004-b071-1132d2eebb5e" editor-version="2.0" version="0.0.0" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
+    <display-name>Get VM Info PowerCLI</display-name>
+    <position y="50.0" x="100.0"/>
+    <input/>
+    <output/>
+    <attrib name="password" type="SecureString">
+        <value encoded="n">10BW50N61S6AZ61J6DU61L31G39Z39N34Y173F855P98A202DL348EB48NECA2874KF9CF94BIB9651DCL7299174HCB4DE3DG7FAAD44I5647CF8TEBA2266Y64A6A25U92A265BOE2EEC45YF75BE40U13114B3L68738FDH55CAB21QED07617G96B704DS9C29F68I9796849Q</value>
+    </attrib>
+    <attrib name="actionResult" type="Properties">
+        <value encoded="n">#[##]#</value>
+    </attrib>
+    <attrib name="actionResult_1" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="50.0" x="390.0"/>
+    </workflow-item>
+    <workflow-item name="item1" out-name="item2" type="task" script-module="com.terasky.utils/getVmInfo" comparator="0">
+        <display-name>getVmInfo</display-name>
+        <script encoded="false">//Auto generated script, cannot be modified !
+actionResult = System.getModule("com.terasky.utils").getVmInfo(password);
+</script>
+        <in-binding>
+            <bind name="password" type="SecureString" export-name="password">
+                <description></description>
+            </bind>
+        </in-binding>
+        <out-binding>
+            <bind name="actionResult" type="string" export-name="actionResult_1"/>
+        </out-binding>
+        <description>Add a note to the workflow schema.</description>
+        <position y="60.0" x="150.0"/>
+    </workflow-item>
+    <workflow-item name="item2" out-name="item0" type="task" comparator="0">
+        <display-name>Scriptable task</display-name>
+        <script encoded="false">jsonObj = JSON.parse(actionResult_1)&#13;
+System.log(JSON.stringify(jsonObj))&#13;
+System.log(jsonObj.Version)</script>
+        <in-binding>
+            <bind name="actionResult_1" type="string" export-name="actionResult_1"/>
+        </in-binding>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="260.0"/>
+    </workflow-item>
+    <presentation/>
+</ns2:workflow>

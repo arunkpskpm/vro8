@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item10" object-name="workflow:name=generic" id="4303308a-26e0-4901-9174-e3ccfbf7d79b" editor-version="2.0" version="0.0.0" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+    <display-name>Copy of vRA8 - STC</display-name>
+    <description>Finshed Up to cloning VMs part.
+This needs to be fixed with the following logic:                                     
+1. clone all needed VMs at the same time and not 1 by 1.
+2. Create Snapshot for the VM as this will be linked clone and not full clone
+3. dont use the getAllVMs method as it is very slow. instead use xpath query
+4. change blueprint code changing to manipulate JSON and not string replace method
+5. yaml must go through regexs change to replace newlines with \n char simillar t the action created to do the opposite used at the retrieval of the blueprint yaml
+6. add logging of all levels where relevant
+7. add more comments
+test and debug</description>
+    <position y="42.5" x="50.0"/>
+    <input>
+        <param name="prefix" type="string"/>
+        <param name="deploymentName" type="string"/>
+    </input>
+    <output/>
+    <attrib name="accessToken" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="restHost" type="REST:RESTHost">
+        <value encoded="n">dunes://service.dunes.ch/CustomSDKObject?id='29952087-eb4f-452a-b89f-2c991efecc6f'&amp;dunesName='REST:RESTHost'</value>
+    </attrib>
+    <attrib name="username" type="string">
+        <value encoded="n">vradmin</value>
+    </attrib>
+    <attrib name="password" type="SecureString">
+        <value encoded="n">9BL42V70O6FK76H74S6DY67U31H21GD656312JFFDDC12P2BED8EBW41F486FP28BA126M204A280W4939674H1322768I7F2B667J85ED323VC491E8FM3BE178BSB957BC2XD2872B6OCB25ADEN76105E7M63E7E39J6EF2255KA4F4F0AY674D504P1DEB607W46ACEEEP7E71A6EQ</value>
+    </attrib>
+    <attrib name="deploymentID" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="blueprintID" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="blueprintVersion" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="blueprintYaml" type="Text">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="blueprintJson" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="deploymentVMs" type="Array/Properties">
+        <value encoded="n">[]</value>
+    </attrib>
+    <attrib name="index" type="number">
+        <value encoded="n">0.0</value>
+    </attrib>
+    <workflow-item name="item2" out-name="item0" type="task" comparator="0">
+        <display-name>Get Deployment Data</display-name>
+        <script encoded="false">// prepare variables
+deploymentVMs = [];
+var count = 1
+
+// get deployment ID by name
+
+
+// get deployment data from deployment ID
+var uri = "/deployment/api/deployments/" + deploymentID + "/resources?apiVersion=2019-09-12";
+var method = "GET";
+var body = "{}";
+var request = restHost.createRequest(method , uri , body)
+request.setHeader("Authorization" , "Bearer " + accessToken)
+request.setHeader("Content-Type" , "application/json")
+var response = request.execute()
+var strResponseBody = response.contentAsString
+var jsonResponseBody = JSON.parse(strResponseBody);
+blueprintVersion = jsonResponseBody.content.blueprintVersion
+blueprintID = jsonResponseBody.content.blueprintId
+for each (var resource in jsonResponseBody.content)
+{
+	if(resource.type == "Cloud.vSphere.Machine")
+	{
+		deploymentVMs.push({name:resource.name, type:resource.type, template:resource.properties.imageRef, vmName:resource.properties.resourceName, tempName:prefix + "0" + count});
+		count++
+	}
+}</script>
+        <in-binding>
+            <bind name="restHost" type="REST:RESTHost" export-name="restHost"/>
+            <bind name="prefix" type="string" export-name="prefix"/>
+            <bind name="accessToken" type="string" export-name="accessToken"/>
+            <bind name="deploymentID" type="string" export-name="deploymentID"/>
+        </in-binding>
+        <out-binding>
+            <bind name="blueprintID" type="string" export-name="blueprintID"/>
+            <bind name="blueprintVersion" type="string" export-name="blueprintVersion"/>
+            <bind name="deploymentVMs" type="Array/Properties" export-name="deploymentVMs"/>
+        </out-binding>
+        <position y="52.5" x="400.0"/>
+    </workflow-item>
+    <workflow-item name="item3" out-name="item5" alt-out-name="item9" type="custom-condition" comparator="0">
+        <display-name>Custom decision</display-name>
+        <script encoded="false">if(index &lt; deploymentVMs.length)
+{
+	return true;
+}
+else
+{
+	return false;
+}
+
+</script>
+        <in-binding>
+            <bind name="count" type="number" export-name="index"/>
+            <bind name="deploymentVMs" type="Array/Properties" export-name="deploymentVMs"/>
+        </in-binding>
+        <out-binding/>
+        <position y="42.5" x="790.0"/>
+    </workflow-item>
+    <workflow-item name="item4" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="97.5" x="1220.0"/>
+    </workflow-item>
+    <workflow-item name="item6" out-name="item7" type="link" linked-workflow-id="BD808080808080808080808080808080FBC280800122528313869552e41805bb1" comparator="0">
+        <display-name>Clone VM</display-name>
+        <in-binding>
+            <bind name="vm" type="VC:VirtualMachine">
+                <description>Virtual machine or template to clone</description>
+            </bind>
+            <bind name="vmFolder" type="VC:VmFolder">
+                <description>Virtual machine folder</description>
+            </bind>
+            <bind name="name" type="string">
+                <description>Name of the new virtual machine</description>
+            </bind>
+            <bind name="powerOn" type="boolean">
+                <description>Specifies whether or not to power on the new virtual machine</description>
+            </bind>
+            <bind name="template" type="boolean">
+                <description>Specifies whether or not to mark the new virtual machine as a template</description>
+            </bind>
+            <bind name="datastore" type="VC:Datastore">
+                <description>Datastore in which to put the virtual machine. If not specified, the current datastore is used</description>
+            </bind>
+            <bind name="host" type="VC:HostSystem">
+                <description>Destination host for the virtual machine. If not specified, the current host is used</description>
+            </bind>
+            <bind name="pool" type="VC:ResourcePool">
+                <description>Resource pool to which to attach this virtual machine</description>
+            </bind>
+            <bind name="thinProvision" type="boolean">
+                <description>If TRUE, empty virtual disk space is not reserved</description>
+            </bind>
+        </in-binding>
+        <out-binding>
+            <bind name="newVM" type="VC:VirtualMachine">
+                <description>Newly created virtual machine</description>
+            </bind>
+        </out-binding>
+        <description>Clones a virtual machine without changing anything except the virtual machine UUID.</description>
+        <position y="20.0" x="1050.0"/>
+    </workflow-item>
+    <workflow-item name="item7" out-name="item3" type="task" prototype-id="increase-counter" content-mode="x" comparator="0">
+        <display-name>Increase counter</display-name>
+        <script encoded="false">//Auto-generated script
+counter = counter+1;</script>
+        <in-binding>
+            <bind name="counter" type="number">
+                <description>counter to increment</description>
+            </bind>
+        </in-binding>
+        <out-binding>
+            <bind name="counter" type="number">
+                <description>counter incremented</description>
+            </bind>
+        </out-binding>
+        <description>Increment a counter by one</description>
+        <position y="52.5" x="1180.0"/>
+    </workflow-item>
+    <workflow-item name="item0" out-name="item12" type="task" comparator="0">
+        <display-name>Get Blueprint YAML</display-name>
+        <script encoded="false">var uri = "/blueprint/api/blueprints/" + blueprintID + "/versions/" + blueprintVersion;
+var method = "GET";
+var body = "{}";
+
+var request = restHost.createRequest(method , uri , body)
+request.setHeader("Authorization" , "Bearer " + btoken)
+request.setHeader("Content-Type" , "application/json")
+var response = request.execute()
+var jsonResponseBody = JSON.parse(response.contentAsString);
+
+yamlString = jsonResponseBody.content;
+blueprintYaml = System.getModule("com.terasky.utils").replaceBackslashNWithNewLine(yamlString);</script>
+        <in-binding>
+            <bind name="restHost" type="REST:RESTHost" export-name="restHost"/>
+            <bind name="blueprintID" type="string" export-name="blueprintID"/>
+            <bind name="blueprintVersion" type="string" export-name="blueprintVersion"/>
+        </in-binding>
+        <out-binding>
+            <bind name="blueprintYaml" type="Text" export-name="blueprintYaml"/>
+        </out-binding>
+        <position y="52.5" x="530.0"/>
+    </workflow-item>
+    <workflow-item name="item8" out-name="item4" type="task" comparator="0">
+        <display-name>Create new blueprint</display-name>
+        <script encoded="false">var operation = "/blueprint/api/blueprints?apiVersion=2019-09-12";
+var method = "POST";
+var body = '{"name":"'+blueprint+'","description":"BasicBlueprint","content":'+JSON.stringify(blueprint_code)+',"projectId":"'+projectId+'","requestScopeOrg":"false"}';
+
+var request = restHost.createRequest(method , operation , body)
+request.setHeader("Authorization" , "Bearer " + btoken)
+request.setHeader("Content-Type" , "application/json")
+var out = request.execute()
+var out_str = out.contentAsString
+var blueprint = JSON.parse(out_str);
+</script>
+        <in-binding>
+            <bind name="restHost" type="REST:RESTHost"/>
+            <bind name="btoken" type="string"/>
+            <bind name="blueprint_code" type="string"/>
+            <bind name="blueprint" type="string"/>
+            <bind name="projectId" type="string"/>
+        </in-binding>
+        <out-binding/>
+        <position y="107.5" x="1050.0"/>
+    </workflow-item>
+    <workflow-item name="item9" out-name="item8" type="task" comparator="0">
+        <display-name>Change Blueprint Code</display-name>
+        <script encoded="false">for each (var vm_run in deploy_vm)
+{
+	blueprint_code = blueprint_code.replace(vm_run.template, vm_run.tempName);
+}</script>
+        <in-binding>
+            <bind name="deploy_vm" type="Array"/>
+            <bind name="blueprint_code" type="string"/>
+        </in-binding>
+        <out-binding>
+            <bind name="blueprint_code" type="string"/>
+        </out-binding>
+        <position y="107.5" x="920.0"/>
+    </workflow-item>
+    <workflow-item name="item5" out-name="item6" type="task" comparator="0">
+        <display-name>Scriptable task</display-name>
+        <script encoded="false">
+vm_template = (vc.getAllVirtualMachines(null, deploy_vm[count].vmName))[0];
+name = deploy_vm[count].tempName;
+
+System.log(vm_template.name);
+System.log(name);
+System.log("that's works");</script>
+        <in-binding>
+            <bind name="deploy_vm" type="Array"/>
+            <bind name="count" type="number"/>
+            <bind name="vm_template" type="VC:VirtualMachine"/>
+            <bind name="vc" type="VC:SdkConnection"/>
+            <bind name="name" type="string"/>
+        </in-binding>
+        <out-binding>
+            <bind name="vm_template" type="VC:VirtualMachine"/>
+            <bind name="name" type="string"/>
+        </out-binding>
+        <position y="20.0" x="920.0"/>
+    </workflow-item>
+    <workflow-item name="item10" out-name="item11" type="task" script-module="com.terasky.utils/getVraAccessToken" comparator="0">
+        <display-name>Get VRA Access Token</display-name>
+        <script encoded="false">//Auto generated script, cannot be modified !
+actionResult = System.getModule("com.terasky.utils").getVraAccessToken(username,password,restHost);
+</script>
+        <in-binding>
+            <bind name="username" type="string" export-name="username">
+                <description></description>
+            </bind>
+            <bind name="password" type="SecureString" export-name="password">
+                <description></description>
+            </bind>
+            <bind name="restHost" type="REST:RESTHost" export-name="restHost">
+                <description></description>
+            </bind>
+        </in-binding>
+        <out-binding>
+            <bind name="actionResult" type="string" export-name="accessToken"/>
+        </out-binding>
+        <description>Add a note to the workflow schema.</description>
+        <position y="52.5" x="140.0"/>
+    </workflow-item>
+    <workflow-item name="item11" out-name="item2" type="task" script-module="com.terasky.utils/getDeploymentIdByName" comparator="0">
+        <display-name>Get Deployment ID By Name</display-name>
+        <script encoded="false">//Auto generated script, cannot be modified !
+actionResult = System.getModule("com.terasky.utils").getDeploymentIdByName(accessToken,restHost,deploymentName);
+</script>
+        <in-binding>
+            <bind name="accessToken" type="string" export-name="accessToken">
+                <description></description>
+            </bind>
+            <bind name="restHost" type="REST:RESTHost" export-name="restHost">
+                <description></description>
+            </bind>
+            <bind name="deploymentName" type="string" export-name="deploymentName">
+                <description></description>
+            </bind>
+        </in-binding>
+        <out-binding>
+            <bind name="actionResult" type="string" export-name="deploymentID"/>
+        </out-binding>
+        <description>Add a note to the workflow schema.</description>
+        <position y="52.5" x="270.0"/>
+    </workflow-item>
+    <workflow-item name="item12" out-name="item3" type="task" script-module="com.terasky.utils/yaml2json_py" comparator="0">
+        <display-name>Convert YAML To JSON</display-name>
+        <script encoded="false">//Auto generated script, cannot be modified !
+actionResult = System.getModule("com.terasky.utils").yaml2json_py(yamlTxt);
+</script>
+        <in-binding>
+            <bind name="yamlTxt" type="Text" export-name="blueprintYaml">
+                <description></description>
+            </bind>
+        </in-binding>
+        <out-binding>
+            <bind name="actionResult" type="string" export-name="blueprintJson"/>
+        </out-binding>
+        <description>Add a note to the workflow schema.</description>
+        <position y="52.5" x="660.0"/>
+    </workflow-item>
+    <presentation>
+        <p-param name="prefix">
+            <desc>prefix</desc>
+        </p-param>
+    </presentation>
+    <workflow-note x="110.0" y="96.5" w="500.0" h="165.5" color="FFFFC0">
+        <description>Finished Up to custom decision
+This needs to be fixed with the following logic:                                     
+1. clone all needed VMs at the same time and not 1 by 1.
+2. Create Snapshot for the VM as this will be linked clone and not full clone
+3. dont use the getAllVMs method as it is very slow. instead use xpath query
+4. change blueprint code changing to manipulate JSON and not string replace method
+5. yaml must go through regexs change to replace newlines with \n char simillar t the action created to do the opposite used at the retrieval of the blueprint yaml
+6. add logging of all levels where relevant
+7. add more comments
+test and debug</description>
+    </workflow-note>
+</ns2:workflow>

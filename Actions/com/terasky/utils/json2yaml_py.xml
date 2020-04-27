@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="json2yaml_py" result-type="Text" api-version="6.0.0" id="09778468-61dd-460e-a80f-8476b14bab94" version="0.0.0" category-name="com.terasky.utils">
+  <runtime><![CDATA[python:3.7]]></runtime>
+  <entry-point><![CDATA[main.handler]]></entry-point>
+  <param n="jsonTxt" t="string"><![CDATA[]]></param>
+</dunes-script-module>

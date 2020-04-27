@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item4" object-name="workflow:name=generic" id="d0fb1708-77f2-494a-a4c0-9fbad1664797" editor-version="2.0" version="0.0.0" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
+    <display-name>test multi language</display-name>
+    <position y="51.0" x="80.0"/>
+    <input/>
+    <output/>
+    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="51.0" x="633.0"/>
+    </workflow-item>
+    <workflow-item name="item1" out-name="item0" type="task" comparator="0">
+        <display-name>Python 3.7</display-name>
+        <runtime>python:3.7</runtime>
+        <script encoded="false">import json
+
+def handler(context, inputs):
+    print("Python 3.7")
+
+    outputs = {
+      "status": "done"
+    }
+
+    return outputs
+</script>
+        <in-binding/>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="61.5" x="486.0"/>
+    </workflow-item>
+    <workflow-item name="item2" out-name="item1" type="task" comparator="0">
+        <display-name>Powershell Core 6</display-name>
+        <runtime>powercli:11-powershell-6.2</runtime>
+        <script encoded="false">function Handler($context, $inputs) {
+    Write-Host "Powershell Core"
+    $output=@{status = 'done'}
+    return $output
+}
+</script>
+        <in-binding/>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="61.833998629970495" x="375.2887223454544"/>
+    </workflow-item>
+    <workflow-item name="item3" out-name="item2" type="task" comparator="0">
+        <display-name>NodeJS 12</display-name>
+        <runtime>node:12</runtime>
+        <script encoded="false">exports.handler = (context, inputs, callback) =&gt; {
+    console.log("Node JS");
+    callback(undefined, {status: "done"});
+}
+</script>
+        <in-binding/>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="61.61013377226419" x="263.8850550387202"/>
+    </workflow-item>
+    <workflow-item name="item4" out-name="item3" type="task" comparator="0">
+        <display-name>Native JS</display-name>
+        <script encoded="false">System.log("Native JS")</script>
+        <in-binding/>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.72099850227936" x="149.9341893709884"/>
+    </workflow-item>
+    <presentation/>
+    <workflow-note x="126.0" y="33.0" w="508.0" h="63.5" color="FFFFC0">
+        <description>Simple Logging Workflow to test timing of different languages</description>
+    </workflow-note>
+</ns2:workflow>

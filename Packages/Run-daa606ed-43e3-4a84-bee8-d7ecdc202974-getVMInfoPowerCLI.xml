@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<package>
+<description><![CDATA[Export run daa606ed-43e3-4a84-bee8-d7ecdc202974 for workflow 'Get VM Info PowerCLI' at 4/26/2020, 11:05:54 PM.]]></description>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/WorkflowToken?id='daa606ed-43e3-4a84-bee8-d7ecdc202974'&dunesName='WorkflowToken']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Workflow?id='6ea7af92-147d-4004-b071-1132d2eebb5e'&dunesName='Workflow']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='02b31af2-9e9e-4ca6-81dc-80933ba0ff0d'&dunesName='Action'&name='getVmInfo'&category='com.terasky.utils']]></elm>
+</package>

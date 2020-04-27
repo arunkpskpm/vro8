@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="replaceBackslashNWithNewLine" result-type="Text" api-version="6.0.0" id="c465b2da-2b10-40fe-8752-65e913aec0e8" version="0.0.0" category-name="com.terasky.utils">
+  <param n="yamlString" t="string"/>
+  <script encoded="false"><![CDATA[var formattedYaml = yamlString.replace(/\\n/g,"\n")
+return formattedYaml]]></script>
+</dunes-script-module>

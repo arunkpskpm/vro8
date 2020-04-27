@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="getDeploymentIdByName" result-type="string" api-version="6.0.0" id="1559e5c5-4d02-4aba-892a-7cb005a190a4" version="0.0.0" category-name="com.terasky.utils">
+  <param n="accessToken" t="string"><![CDATA[]]></param>
+  <param n="restHost" t="REST:RESTHost"><![CDATA[]]></param>
+  <param n="deploymentName" t="string"><![CDATA[]]></param>
+  <script encoded="false"><![CDATA[// get deployment data from deployment ID
+var uri = "/deployment/api/deployments/?search='" + deploymentName + "'";
+var encodedUri = encodeURI(uri)
+var method = "GET";
+var body = "{}";
+var request = restHost.createRequest(method , encodedUri , body)
+request.setHeader("Authorization" , "Bearer " + accessToken)
+request.setHeader("Content-Type" , "application/json")
+var response = request.execute()
+var strResponseBody = response.contentAsString
+var jsonResponseBody = JSON.parse(strResponseBody);
+System.log(JSON.stringify(jsonResponseBody))
+
+for each(var result in jsonResponseBody.content)
+{
+    if(result.name == deploymentName)
+    {
+        return result.id
+    }
+}
+throw "NO DEPLOYMENT FOUND WITH THE NAME: " + deploymentName]]></script>
+</dunes-script-module>

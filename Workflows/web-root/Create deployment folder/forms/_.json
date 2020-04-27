@@ -1,0 +1,1 @@
+{"schema":{"name":{"type":{"dataType":"string","isMultiple":false},"label":"Name of the new folder","id":"name","constraints":{"required":true}}},"layout":{"pages":[{"id":"page_1","title":"General","sections":[{"id":"section_1","fields":[{"id":"name","display":"textField"}]}]}]},"workflowId":"7c8ac6e7-d720-48c8-aa6f-4c045d358e9f","itemId":""}

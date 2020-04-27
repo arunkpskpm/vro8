@@ -1,0 +1,354 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<workflow xmlns="http://vmware.com/vco/workflow" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://vmware.com/vco/workflow http://vmware.com/vco/workflow/Workflow-v4.xsd" root-name="item1" object-name="workflow:name=generic" id="96605294-0b86-45aa-a942-144b2bbf51bd" version="0.0.0" api-version="6.0.0" allowed-operations="vfe" restartMode="1" resumeFromFailedMode="0">
+  <display-name><![CDATA[vRA8 - STC]]></display-name>
+  <position y="45.90909090909091" x="45.0"/>
+  <input>
+    <param name="blueprint" type="string"/>
+    <param name="prefix" type="string"/>
+  </input>
+  <output>
+    <param name="newVM" type="VC:VirtualMachine">
+      <description><![CDATA[Newly created virtual machine]]></description>
+    </param>
+  </output>
+  <attrib name="restHost" type="REST:RESTHost" read-only="false">
+    <value encoded="n"><![CDATA[dunes://service.dunes.ch/CustomSDKObject?id='87f3e95c-5101-492c-a2dc-ab794be0b948'&dunesName='REST:RESTHost']]></value>
+  </attrib>
+  <attrib name="btoken" type="string" read-only="false">
+    <value encoded="n"><![CDATA[]]></value>
+  </attrib>
+  <attrib name="deploy_id" type="string" read-only="false">
+    <value encoded="n"><![CDATA[5a7bbfbe-6dcd-4a73-a135-9276006ad87d]]></value>
+  </attrib>
+  <attrib name="blueprint_id" type="string" read-only="false">
+    <value encoded="n"><![CDATA[c30e4283-c8a5-45ed-ac62-10f3ccd55f78]]></value>
+  </attrib>
+  <attrib name="user" type="string" read-only="false">
+    <value encoded="n"><![CDATA[sagii]]></value>
+  </attrib>
+  <attrib name="pass" type="SecureString" read-only="false">
+    <value encoded="n"><![CDATA[8BR50S40Z73T73T77I30I72G64U4B67001H6A89FFFR9FBCE6DL48482D7JDD19EB0V2F63383J846FAC5L11365F0K1710705UF9F3A21N366594N636C3A5M6D5AD3CZ3D483AAR30F2705Z18EEAE5Y65309B8O79A0C86V2E99E9DI365FF8CQC2E2EABP7C5FF9FR35C4B66N3432CCL]]></value>
+  </attrib>
+  <attrib name="deploy_vm" type="Array" read-only="false">
+    <value encoded="n"><![CDATA[__NULL__]]></value>
+  </attrib>
+  <attrib name="count" type="number" read-only="false">
+    <value encoded="n"><![CDATA[0.0]]></value>
+  </attrib>
+  <attrib name="vm_template" type="VC:VirtualMachine" read-only="false">
+    <value encoded="n"><![CDATA[__NULL__]]></value>
+  </attrib>
+  <attrib name="vc" type="VC:SdkConnection" read-only="false">
+    <value encoded="n"><![CDATA[dunes://service.dunes.ch/CustomSDKObject?id='ts-vc-01.terasky.local'&dunesName='VC:SdkConnection']]></value>
+  </attrib>
+  <attrib name="vmFolder" type="VC:VmFolder" read-only="false">
+    <value encoded="n"><![CDATA[dunes://service.dunes.ch/CustomSDKObject?id='ts-vc-01.terasky.local%2Cid:group-v3075'&dunesName='VC:VmFolder']]></value>
+    <description><![CDATA[Virtual machine folder]]></description>
+  </attrib>
+  <attrib name="name" type="string" read-only="false">
+    <value encoded="n"><![CDATA[]]></value>
+    <description><![CDATA[Name of the new virtual machine]]></description>
+  </attrib>
+  <attrib name="powerOn" type="boolean" read-only="false">
+    <value encoded="n"><![CDATA[false]]></value>
+    <description><![CDATA[Specifies whether or not to power on the new virtual machine]]></description>
+  </attrib>
+  <attrib name="template" type="boolean" read-only="false">
+    <value encoded="n"><![CDATA[true]]></value>
+    <description><![CDATA[Specifies whether or not to mark the new virtual machine as a template]]></description>
+  </attrib>
+  <attrib name="datastore" type="VC:Datastore" read-only="false">
+    <value encoded="n"><![CDATA[dunes://service.dunes.ch/CustomSDKObject?id='ts-vc-01.terasky.local%2Cid:datastore-1063'&dunesName='VC:Datastore']]></value>
+    <description><![CDATA[Datastore in which to put the virtual machine. If not specified, the current datastore is used]]></description>
+  </attrib>
+  <attrib name="host" type="VC:HostSystem" read-only="false">
+    <description><![CDATA[Destination host for the virtual machine. If not specified, the current host is used]]></description>
+  </attrib>
+  <attrib name="pool" type="VC:ResourcePool" read-only="false">
+    <description><![CDATA[Resource pool to which to attach this virtual machine]]></description>
+  </attrib>
+  <attrib name="thinProvision" type="boolean" read-only="false">
+    <description><![CDATA[If TRUE, empty virtual disk space is not reserved]]></description>
+  </attrib>
+  <attrib name="blueprint_code" type="string" read-only="false">
+    <value encoded="n"><![CDATA[]]></value>
+  </attrib>
+  <attrib name="projectId" type="string" read-only="false">
+    <value encoded="n"><![CDATA[3fb5487c-5358-4cfa-a703-10b891790779]]></value>
+  </attrib>
+  <workflow-item name="item1" out-name="item2" type="task">
+    <display-name><![CDATA[Get Token]]></display-name>
+    <script encoded="false"><![CDATA[
+//prepare & execute REST Request to get Token
+var operation = "/csp/gateway/am/api/login?access_token";
+var method = "POST";
+var body = '{"username":"'+user+'","password":"'+pass+'"}';
+var request = restHost.createRequest(method , operation , body)
+request.setHeader("Content-Type" , "application/json")
+var out = request.execute()
+
+//convert REST output to string
+var token = out.contentAsString
+var access = JSON.parse(token);
+
+//Save Barear token into variable
+btoken = access.access_token; 
+
+
+]]></script>
+    <in-binding>
+      <bind name="restHost" type="REST:RESTHost" export-name="restHost"/>
+      <bind name="btoken" type="string" export-name="btoken"/>
+      <bind name="user" type="string" export-name="user"/>
+      <bind name="pass" type="SecureString" export-name="pass"/>
+    </in-binding>
+    <out-binding>
+      <bind name="btoken" type="string" export-name="btoken"/>
+      <bind name="user" type="string" export-name="user"/>
+      <bind name="pass" type="SecureString" export-name="pass"/>
+    </out-binding>
+    <position y="55.40909090909091" x="104.5"/>
+  </workflow-item>
+  <workflow-item name="item2" out-name="item0" type="task">
+    <display-name><![CDATA[Get Deployment Resources]]></display-name>
+    <script encoded="false"><![CDATA[	//System.log(JSON.parse(idx));
+	//System.log(JSON.stringify(idx));
+
+
+var deploy_vm = new Array;
+
+var operation = "/deployment/api/deployments/"+deploy_id+"/resources?apiVersion=2019-09-12";
+var method = "GET";
+var body = "{}";
+
+
+
+var request = restHost.createRequest(method , operation , body)
+request.setHeader("Authorization" , "Bearer " + btoken)
+request.setHeader("Content-Type" , "application/json")
+var out = request.execute()
+var out_str = out.contentAsString
+var access = JSON.parse(out_str);
+
+var count_name = 1
+for each (var idx in access.content)
+{
+	if(idx.type == "Cloud.vSphere.Machine")
+	{
+		deploy_vm.push({name:idx.name, type:idx.type, template:idx.properties.imageRef, vmName:idx.properties.resourceName, tempName:prefix + "0" +count_name});
+		count_name++
+	}
+}
+
+
+
+
+
+]]></script>
+    <in-binding>
+      <bind name="restHost" type="REST:RESTHost" export-name="restHost"/>
+      <bind name="btoken" type="string" export-name="btoken"/>
+      <bind name="deploy_id" type="string" export-name="deploy_id"/>
+      <bind name="blueprint_id" type="string" export-name="blueprint_id"/>
+      <bind name="user" type="string" export-name="user"/>
+      <bind name="pass" type="SecureString" export-name="pass"/>
+      <bind name="deploy_vm" type="Array" export-name="deploy_vm"/>
+      <bind name="prefix" type="string" export-name="prefix"/>
+    </in-binding>
+    <out-binding>
+      <bind name="btoken" type="string" export-name="btoken"/>
+      <bind name="deploy_vm" type="Array" export-name="deploy_vm"/>
+    </out-binding>
+    <position y="55.40909090909091" x="224.5"/>
+  </workflow-item>
+  <workflow-item name="item3" out-name="item5" type="custom-condition" alt-out-name="item9">
+    <display-name><![CDATA[Custom decision]]></display-name>
+    <script encoded="false"><![CDATA[if(count < deploy_vm.length)
+{
+	return true;
+}
+else
+{
+	return false;
+}
+
+]]></script>
+    <in-binding>
+      <bind name="deploy_vm" type="Array" export-name="deploy_vm"/>
+      <bind name="count" type="number" export-name="count"/>
+    </in-binding>
+    <position y="45.90909090909091" x="505.0"/>
+  </workflow-item>
+  <workflow-item name="item4" type="end" end-mode="0">
+    <position y="254.5" x="604.5"/>
+  </workflow-item>
+  <workflow-item name="item6" out-name="item7" type="link" linked-workflow-id="BD808080808080808080808080808080FBC280800122528313869552e41805bb1">
+    <display-name><![CDATA[Clone virtual machine, no customization]]></display-name>
+    <in-binding>
+      <bind name="vm" type="VC:VirtualMachine" export-name="vm_template">
+        <description><![CDATA[Virtual machine or template to clone]]></description>
+      </bind>
+      <bind name="vmFolder" type="VC:VmFolder" export-name="vmFolder">
+        <description><![CDATA[Virtual machine folder]]></description>
+      </bind>
+      <bind name="name" type="string" export-name="name">
+        <description><![CDATA[Name of the new virtual machine]]></description>
+      </bind>
+      <bind name="powerOn" type="boolean" export-name="powerOn">
+        <description><![CDATA[Specifies whether or not to power on the new virtual machine]]></description>
+      </bind>
+      <bind name="template" type="boolean" export-name="template">
+        <description><![CDATA[Specifies whether or not to mark the new virtual machine as a template]]></description>
+      </bind>
+      <bind name="datastore" type="VC:Datastore" export-name="datastore">
+        <description><![CDATA[Datastore in which to put the virtual machine. If not specified, the current datastore is used]]></description>
+      </bind>
+      <bind name="host" type="VC:HostSystem" export-name="host">
+        <description><![CDATA[Destination host for the virtual machine. If not specified, the current host is used]]></description>
+      </bind>
+      <bind name="pool" type="VC:ResourcePool" export-name="pool">
+        <description><![CDATA[Resource pool to which to attach this virtual machine]]></description>
+      </bind>
+      <bind name="thinProvision" type="boolean" export-name="thinProvision">
+        <description><![CDATA[If TRUE, empty virtual disk space is not reserved]]></description>
+      </bind>
+    </in-binding>
+    <out-binding>
+      <bind name="newVM" type="VC:VirtualMachine" export-name="newVM">
+        <description><![CDATA[Newly created virtual machine]]></description>
+      </bind>
+    </out-binding>
+    <description><![CDATA[Clones a virtual machine without changing anything except the virtual machine UUID.]]></description>
+    <position y="82.68181818181817" x="904.5"/>
+  </workflow-item>
+  <workflow-item name="item7" prototype-id="increase-counter" out-name="item3" content-mode="x" type="task">
+    <display-name><![CDATA[Increase counter]]></display-name>
+    <script encoded="false"><![CDATA[//Auto-generated script
+counter = counter+1;]]></script>
+    <in-binding>
+      <bind name="counter" type="number" export-name="count">
+        <description><![CDATA[counter to increment]]></description>
+      </bind>
+    </in-binding>
+    <out-binding>
+      <bind name="counter" type="number" export-name="count">
+        <description><![CDATA[counter incremented]]></description>
+      </bind>
+    </out-binding>
+    <description><![CDATA[Increment a counter by one]]></description>
+    <position y="100.86363636363636" x="625.0"/>
+  </workflow-item>
+  <workflow-item name="item0" out-name="item3" type="task">
+    <display-name><![CDATA[Get Blueprint Code]]></display-name>
+    <script encoded="false"><![CDATA[var operation = "/blueprint/api/blueprints";
+var method = "GET";
+var body = "{}";
+
+var request = restHost.createRequest(method , operation , body)
+request.setHeader("Authorization" , "Bearer " + btoken)
+request.setHeader("Content-Type" , "application/json")
+var out = request.execute()
+var out_str = out.contentAsString
+var blueprint = JSON.parse(out_str);
+
+for each (var runner in blueprint.content)
+{
+	if(blueprint_id == runner.id)
+	{
+		var code_link = runner.selfLink;
+	}
+}
+
+var operation = code_link;
+var method = "GET";
+var body = "{}";
+
+var request = restHost.createRequest(method , operation , body)
+request.setHeader("Authorization" , "Bearer " + btoken)
+request.setHeader("Content-Type" , "application/json")
+var out = request.execute()
+var out_str = out.contentAsString
+var code = JSON.parse(out_str);
+
+blueprint_code = code.content;
+]]></script>
+    <in-binding>
+      <bind name="blueprint_id" type="string" export-name="blueprint_id"/>
+      <bind name="restHost" type="REST:RESTHost" export-name="restHost"/>
+      <bind name="btoken" type="string" export-name="btoken"/>
+      <bind name="blueprint_code" type="string" export-name="blueprint_code"/>
+    </in-binding>
+    <out-binding>
+      <bind name="blueprint_code" type="string" export-name="blueprint_code"/>
+    </out-binding>
+    <position y="55.90909090909091" x="365.0"/>
+  </workflow-item>
+  <workflow-item name="item8" out-name="item4" type="task">
+    <display-name><![CDATA[Create new blueprint]]></display-name>
+    <script encoded="false"><![CDATA[var operation = "/blueprint/api/blueprints?apiVersion=2019-09-12";
+var method = "POST";
+var body = '{"name":"'+blueprint+'","description":"BasicBlueprint","content":'+JSON.stringify(blueprint_code)+',"projectId":"'+projectId+'","requestScopeOrg":"false"}';
+
+var request = restHost.createRequest(method , operation , body)
+request.setHeader("Authorization" , "Bearer " + btoken)
+request.setHeader("Content-Type" , "application/json")
+var out = request.execute()
+var out_str = out.contentAsString
+var blueprint = JSON.parse(out_str);
+]]></script>
+    <in-binding>
+      <bind name="restHost" type="REST:RESTHost" export-name="restHost"/>
+      <bind name="btoken" type="string" export-name="btoken"/>
+      <bind name="blueprint_code" type="string" export-name="blueprint_code"/>
+      <bind name="blueprint" type="string" export-name="blueprint"/>
+      <bind name="projectId" type="string" export-name="projectId"/>
+    </in-binding>
+    <out-binding/>
+    <position y="182.68181818181816" x="505.0"/>
+  </workflow-item>
+  <workflow-item name="item9" out-name="item8" type="task">
+    <display-name><![CDATA[Change Blueprint Code]]></display-name>
+    <script encoded="false"><![CDATA[for each (var vm_run in deploy_vm)
+{
+	blueprint_code = blueprint_code.replace(vm_run.template, vm_run.tempName);
+}]]></script>
+    <in-binding>
+      <bind name="deploy_vm" type="Array" export-name="deploy_vm"/>
+      <bind name="blueprint_code" type="string" export-name="blueprint_code"/>
+    </in-binding>
+    <out-binding>
+      <bind name="blueprint_code" type="string" export-name="blueprint_code"/>
+    </out-binding>
+    <position y="119.04545454545453" x="505.0"/>
+  </workflow-item>
+  <workflow-item name="item5" out-name="item6" type="task">
+    <display-name><![CDATA[Scriptable task]]></display-name>
+    <script encoded="false"><![CDATA[
+vm_template = (vc.getAllVirtualMachines(null, deploy_vm[count].vmName))[0];
+name = deploy_vm[count].tempName;
+
+System.log(vm_template.name);
+System.log(name);
+System.log("that's works");]]></script>
+    <in-binding>
+      <bind name="deploy_vm" type="Array" export-name="deploy_vm"/>
+      <bind name="count" type="number" export-name="count"/>
+      <bind name="vm_template" type="VC:VirtualMachine" export-name="vm_template"/>
+      <bind name="vc" type="VC:SdkConnection" export-name="vc"/>
+      <bind name="name" type="string" export-name="name"/>
+    </in-binding>
+    <out-binding>
+      <bind name="vm_template" type="VC:VirtualMachine" export-name="vm_template"/>
+      <bind name="name" type="string" export-name="name"/>
+    </out-binding>
+    <position y="37.22727272727273" x="705.0"/>
+  </workflow-item>
+  <presentation>
+    <p-param name="blueprint">
+      <desc><![CDATA[blueprint]]></desc>
+    </p-param>
+    <p-param name="prefix">
+      <desc><![CDATA[prefix]]></desc>
+    </p-param>
+  </presentation>
+</workflow>

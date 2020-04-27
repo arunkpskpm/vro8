@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item0" object-name="Workflow:name=generic" id="7c8ac6e7-d720-48c8-aa6f-4c045d358e9f" editor-version="2.0" version="0.2.0" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+    <display-name>Create deployment folder</display-name>
+    <description>Creates a new virtual machine folder.</description>
+    <ref-types>(VC:VmFolder)</ref-types>
+    <position y="20.0" x="180.0"/>
+    <input>
+        <param name="name" type="string">
+            <description>Name of the new folder</description>
+        </param>
+    </input>
+    <output>
+        <param name="newFolder" type="VC:VmFolder">
+            <description>The newly created folder, if no errors occur</description>
+        </param>
+    </output>
+    <attrib name="parentFolder" type="VC:VmFolder">
+        <value encoded="n">dunes://service.dunes.ch/CustomSDKObject?id='172.16.20.2%2Cid:group-v1386'&amp;dunesName='VC:VmFolder'</value>
+        <description>Parent folder</description>
+    </attrib>
+    <workflow-item name="item0" out-name="item2" type="task" comparator="0">
+        <display-name>Create folder</display-name>
+        <script encoded="false">newFolder = parentFolder.createFolder(name);
+
+// This tests are done by the workflow validation
+
+//if (parentFolder == null) 
+//	throw "ReferenceError: Parent folder is null";
+//else if (name == null || name == "")
+//	throw "ReferenceError: New name folder is null";
+//else
+</script>
+        <in-binding>
+            <bind name="parentFolder" type="VC:VmFolder" export-name="parentFolder"/>
+            <bind name="name" type="string" export-name="name"/>
+        </in-binding>
+        <out-binding>
+            <bind name="newFolder" type="VC:VmFolder" export-name="newFolder"/>
+        </out-binding>
+        <position y="90.0" x="140.0"/>
+    </workflow-item>
+    <workflow-item name="item2" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="130.0" x="180.0"/>
+    </workflow-item>
+    <presentation>
+        <p-param name="name">
+            <desc>Name of the new folder</desc>
+            <p-qual name="mandatory">true</p-qual>
+        </p-param>
+    </presentation>
+</ns2:workflow>

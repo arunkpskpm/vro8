@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="json2yaml_pwsh" result-type="Text" api-version="6.0.0" id="c5853bb5-2353-428b-93d7-ae4e965b471f" version="0.0.0" category-name="com.terasky.utils" memory-limit="150000000" timeout="360">
+  <runtime><![CDATA[powercli:11-powershell-6.2]]></runtime>
+  <entry-point><![CDATA[index.Handler]]></entry-point>
+  <param n="jsonStr" t="string"/>
+</dunes-script-module>

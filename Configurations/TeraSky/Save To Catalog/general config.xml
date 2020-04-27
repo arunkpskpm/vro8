@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<config-element id="e147e593-b897-492b-bf82-d31fc1e22861" version="0.0.0">
+  <display-name><![CDATA[general config]]></display-name>
+  <atts>
+    <att name="username" type="string" read-only="false">
+      <value encoded="n"><![CDATA[vradmin]]></value>
+      <description><![CDATA[admin username for VRA API Calls]]></description>
+    </att>
+    <att name="password" type="SecureString" read-only="false">
+      <value encoded="n"><![CDATA[__NULL__]]></value>
+      <description><![CDATA[VRA Admin User Password]]></description>
+    </att>
+    <att name="vraRestHost" type="REST:RESTHost" read-only="false">
+      <value encoded="n"><![CDATA[dunes://service.dunes.ch/CustomSDKObject?id='29952087-eb4f-452a-b89f-2c991efecc6f'&dunesName='REST:RESTHost']]></value>
+    </att>
+  </atts>
+</config-element>

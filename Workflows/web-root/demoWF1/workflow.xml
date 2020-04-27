@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item4" object-name="workflow:name=generic" id="c476fd29-2f6a-44cb-abee-06ebe10eb393" editor-version="2.0" version="0.0.0" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
+    <display-name>demoWF1</display-name>
+    <position y="50.0" x="100.0"/>
+    <input/>
+    <output/>
+    <attrib name="actionResult" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="yaml" type="Text">
+        <value encoded="n">---
+invoice: 34843
+date   : 2001-01-23
+bill-to: &amp;id001
+    given  : Chris
+    family : Dumars
+    address:
+        lines: |
+            458 Walkman Dr.
+            Suite #292
+        city    : Royal Oak
+        state   : MI
+        postal  : 48046
+ship-to: *id001
+product:
+    - sku         : BL394D
+      quantity    : 4
+      description : Basketball
+      price       : 450.00
+    - sku         : BL4438H
+      quantity    : 1
+      description : Super Hoop
+      price       : 2392.00
+tax  : 251.42
+total: 4443.52
+comments: &gt;
+    Late afternoon is best.
+    Backup contact is Nancy
+    Billsmer @ 338-4338.</value>
+    </attrib>
+    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="50.0" x="617.5"/>
+    </workflow-item>
+    <workflow-item name="item4" out-name="item0" type="task" comparator="0">
+        <display-name>Scriptable task</display-name>
+        <script encoded="false">System.log(yaml)&#13;
+prjID = System.getContext().getParameter("__metadata_projectId")&#13;
+System.log(prjID)&#13;
+/*&#13;
+System.log("converting to Json")&#13;
+//Auto generated script, cannot be modified !&#13;
+yamlTxt = yaml&#13;
+jsonStr = System.getModule("com.terasky.utils").yaml2json_pwsh(yamlTxt);&#13;
+System.log(jsonStr)&#13;
+jsonObj = JSON.parse(jsonStr)&#13;
+jsonObj["date"] = "2020-04-16"&#13;
+System.log("converting to yaml")&#13;
+jsonStr = JSON.stringify(jsonObj)&#13;
+actionResult = System.getModule("com.terasky.utils").json2yaml_pwsh(jsonStr);&#13;
+System.log(actionResult)&#13;
+*/</script>
+        <in-binding>
+            <bind name="yaml" type="Text" export-name="yaml"/>
+        </in-binding>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="260.0"/>
+    </workflow-item>
+    <presentation/>
+</ns2:workflow>

@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="getVmInfo" result-type="string" api-version="6.0.0" id="02b31af2-9e9e-4ca6-81dc-80933ba0ff0d" version="0.0.0" category-name="com.terasky.utils" memory-limit="500000000" timeout="360">
+  <runtime><![CDATA[powercli:11-powershell-6.2]]></runtime>
+  <param n="password" t="SecureString"><![CDATA[]]></param>
+  <script encoded="false"><![CDATA[function Handler($context, $inputs) {
+    $inputsString = $inputs | ConvertTo-Json -Compress
+    Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
+    connect-viserver 172.16.20.2 -user scott@terasky.local -password $inputs.password
+    $vm = get-vm -name lab-vra
+    $extData = $vm | select * -ExpandProperty ExtensionData -ErrorAction SilentlyContinue
+    $confData = $extData | select * -ExpandProperty Config -ErrorAction SilentlyContinue
+    $fileData = $confData | select Files -ExpandProperty Files -ErrorAction SilentlyContinue
+    $guestData = $extData | select Guest -ExpandProperty Guest -ErrorAction SilentlyContinue
+
+
+    $baseInfo = $vm | select Name,PowerState,NumCPU,CoresPerSocket,MemoryGB,VMHost,Folder,ResourcePool,UsedSpaceGB,ProvisionedSpaceGB,Id
+    $configInfo = $confData | select GuestFullName,Version,Uuid,InstanceUuid,MemoryHotAddEnabled,CpuHotAddEnabled,Firmware
+    $configInfo = $configInfo | select * -ExcludeProperty LinkedView
+    $fileInfo = $fileData | select VmPathName,LogDirectory,SnapshotDirectory
+    $guestInfo = $guestData | select ToolsStatus,ToolsVersionStatus,ToolsRunningStatus,ToolsVersion,ToolsInstallType,GuestId,GuestFamily,IPAddress,HostName
+    $arguments = [Pscustomobject]@()
+    $fullData = New-Object -TypeName Pscustomobject
+    foreach ( $Property in $baseInfo.psobject.Properties)
+    {
+        if($Property.name -eq "Folder" -or $Property.name -eq "ResourcePool")
+        {
+            Add-Member -InputObject $fullData -Name $Property.Name -Value $Property.Value.Name -MemberType NoteProperty -Force
+        }
+        elseif($Property.name -eq "VMHost")
+        {
+            $hostData = New-Object -TypeName Pscustomobject
+            Add-Member -InputObject $hostData -Name "PowerState" -Value $Property.Value.PowerState -MemberType NoteProperty
+            Add-Member -InputObject $hostData -Name "Cluster" -Value $Property.Value.Parent.Name -MemberType NoteProperty
+            Add-Member -InputObject $hostData -Name "ServerModel" -Value $Property.Value.Model -MemberType NoteProperty
+            Add-Member -InputObject $hostData -Name "TotalCpuMhz" -Value $Property.Value.CpuTotalMhz -MemberType NoteProperty
+            Add-Member -InputObject $hostData -Name "UsedCpuMhz" -Value $Property.Value.CpuUsageMhz -MemberType NoteProperty
+            $totalRAM = [Math]::Round($Property.Value.MemoryTotalGB)
+            $usedRAM = [Math]::Round($Property.Value.UsedMemoryGB)
+            Add-Member -InputObject $hostData -Name "TotalMemoryGB" -Value $totalRAM -MemberType NoteProperty
+            Add-Member -InputObject $hostData -Name "UsedMemoryGB" -Value $usedRAM -MemberType NoteProperty
+            Add-Member -InputObject $hostData -Name "ProcessorType" -Value $Property.Value.ProcessorType -MemberType NoteProperty
+            Add-Member -InputObject $hostData -Name "HostVersion" -Value $Property.Value.Version -MemberType NoteProperty
+            Add-Member -InputObject $hostData -Name "HostBuildNumber" -Value $Property.Value.Build -MemberType NoteProperty
+            Add-Member -InputObject $hostData -Name "MaxEvcMode" -Value $Property.Value.MaxEVCMode -MemberType NoteProperty
+            Add-Member -InputObject $hostData -Name "Name" -Value $Property.Value.Name -MemberType NoteProperty
+            Add-Member -InputObject $hostData -Name "HostId" -Value $Property.Value.Id -MemberType NoteProperty
+            Add-Member -InputObject $hostData -Name "HyperthreadingActive" -Value $Property.Value.HyperthreadingActive -MemberType NoteProperty
+            Add-Member -InputObject $fullData -Name "VMHostData" -Value $hostData -MemberType NoteProperty
+        }
+        else
+        {
+            Add-Member -InputObject $fullData -Name $Property.Name -Value $Property.Value -MemberType NoteProperty 
+        }
+        
+    }
+    foreach ( $Property in $configInfo.psobject.Properties)
+    {
+        Add-Member -InputObject $fullData -Name $Property.Name -Value $Property.Value -MemberType NoteProperty
+    }
+    foreach ( $Property in $fileInfo.psobject.Properties)
+    {
+        Add-Member -InputObject $fullData -Name $Property.Name -Value $Property.Value -MemberType NoteProperty
+    }
+    foreach ( $Property in $guestInfo.psobject.Properties)
+    {
+        Add-Member -InputObject $fullData -Name $Property.Name -Value $Property.Value -MemberType NoteProperty
+    }
+    $fullData.ProvisionedSpaceGB = [Math]::Round($fullData.ProvisionedSpaceGB)
+    $fullData.UsedSpaceGB = [Math]::Round($fullData.UsedSpaceGB)
+    return $fullData | ConvertTo-Json
+}
+]]></script>
+</dunes-script-module>

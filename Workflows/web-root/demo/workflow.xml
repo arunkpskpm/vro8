@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item0" object-name="workflow:name=generic" id="b8f192e1-b0ad-4c46-b5a5-e5131c043582" editor-version="2.0" version="0.0.0" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
+    <display-name>demo</display-name>
+    <position y="50.0" x="100.0"/>
+    <input>
+        <param name="vmName" type="string"/>
+        <param name="vmIP" type="string">
+            <description>IP Address</description>
+        </param>
+        <param name="username" type="string">
+            <description>VM Username</description>
+        </param>
+        <param name="vmPassword" type="SecureString"/>
+    </input>
+    <output/>
+    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="50.0" x="240.0"/>
+    </workflow-item>
+    <presentation/>
+</ns2:workflow>
