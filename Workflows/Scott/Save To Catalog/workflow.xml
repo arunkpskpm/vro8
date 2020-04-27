@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item10" object-name="workflow:name=generic" id="4303308a-26e0-4901-9174-e3ccfbf7d79b" editor-version="2.0" version="0.0.0" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+    <display-name>Save To Catalog</display-name>
+    <description></description>
+    <position y="10.0" x="50.0"/>
+    <input>
+        <param name="prefix" type="string"/>
+        <param name="deploymentName" type="string"/>
+        <param name="newBlueprintName" type="string"/>
+        <param name="newBlueprintDescription" type="string"/>
+    </input>
+    <output/>
+    <attrib name="accessToken" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="restHost" type="REST:RESTHost" conf-id="e147e593-b897-492b-bf82-d31fc1e22861" conf-key="vraRestHost"/>
+    <attrib name="username" type="string" conf-id="e147e593-b897-492b-bf82-d31fc1e22861" conf-key="username"/>
+    <attrib name="password" type="SecureString" conf-id="e147e593-b897-492b-bf82-d31fc1e22861" conf-key="password"/>
+    <attrib name="deploymentID" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="blueprintID" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="blueprintVersion" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="blueprintYaml" type="Text">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="blueprintJson" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="deploymentVMs" type="Array/Properties">
+        <value encoded="n">[]</value>
+    </attrib>
+    <attrib name="index" type="number">
+        <value encoded="n">0.0</value>
+    </attrib>
+    <attrib name="vmFolder" type="VC:VmFolder">
+        <value encoded="n"/>
+    </attrib>
+    <attrib name="newBlueprintYaml" type="Text">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="newBlueprintJson" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="snapshotName" type="string">
+        <value encoded="n">ss_for_vra_blueprint</value>
+        <description>name of snashot for all new cloned vms to be used in vra blueprint to provision linked clones</description>
+    </attrib>
+    <workflow-item name="item2" out-name="item0" type="task" comparator="0">
+        <display-name>Get Deployment Data</display-name>
+        <script encoded="false">// prepare variables
+deploymentVMs = [];
+var count = 1
+
+// get deployment source Data
+var uri = "/deployment/api/deployments/" + deploymentID;
+var method = "GET";
+var body = "{}";
+var request = restHost.createRequest(method , uri , body)
+request.setHeader("Authorization" , "Bearer " + accessToken)
+request.setHeader("Content-Type" , "application/json")
+var response = request.execute()
+var strResponseBody = response.contentAsString
+var jsonResponseBody = JSON.parse(strResponseBody);
+//System.log(strResponseBody)
+blueprintVersion = jsonResponseBody.blueprintVersion
+blueprintID = jsonResponseBody.blueprintId
+
+// get deployment resources from deployment ID
+var uri = "/deployment/api/deployments/" + deploymentID + "/resources";
+var method = "GET";
+var body = "{}";
+var request = restHost.createRequest(method , uri , body)
+request.setHeader("Authorization" , "Bearer " + accessToken)
+request.setHeader("Content-Type" , "application/json")
+var response = request.execute()
+var strResponseBody = response.contentAsString
+var jsonResponseBody = JSON.parse(strResponseBody);
+System.log(strResponseBody)
+for each (var resource in jsonResponseBody.content)
+{
+	if(resource.type == "Cloud.vSphere.Machine")
+	{
+		var vmData = new Properties()
+        vmData.put("name",resource.name)
+        vmData.put("type",resource.type)
+        vmData.put("template",resource.properties.imageRef)
+        vmData.put("vmName",resource.properties.resourceName)
+        vmData.put("vmUuid",resource.properties.instanceUUID)
+        vmData.put("tempName",prefix + "0" + count)
+        deploymentVMs.push(vmData)
+		count++
+	}
+}</script>
+        <in-binding>
+            <bind name="restHost" type="REST:RESTHost" export-name="restHost"/>
+            <bind name="prefix" type="string" export-name="prefix"/>
+            <bind name="accessToken" type="string" export-name="accessToken"/>
+            <bind name="deploymentID" type="string" export-name="deploymentID"/>
+        </in-binding>
+        <out-binding>
+            <bind name="blueprintID" type="string" export-name="blueprintID"/>
+            <bind name="blueprintVersion" type="string" export-name="blueprintVersion"/>
+            <bind name="deploymentVMs" type="Array/Properties" export-name="deploymentVMs"/>
+        </out-binding>
+        <position y="20.0" x="400.0"/>
+    </workflow-item>
+    <workflow-item name="item4" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="10.0" x="1350.0"/>
+    </workflow-item>
+    <workflow-item name="item0" out-name="item12" type="task" comparator="0">
+        <display-name>Get Blueprint YAML</display-name>
+        <script encoded="false">var uri = "/blueprint/api/blueprints/" + blueprintID + "/versions/" + blueprintVersion;
+var method = "GET";
+var body = "{}";
+uri = encodeURI(uri)
+var request = restHost.createRequest(method , uri , body)
+request.setHeader("Authorization" , "Bearer " + accessToken)
+request.setHeader("Content-Type" , "application/json")
+var response = request.execute()
+var jsonResponseBody = JSON.parse(response.contentAsString);
+yamlString = jsonResponseBody.content;
+blueprintYaml = System.getModule("com.terasky.utils").replaceBackslashNWithNewLine(yamlString);</script>
+        <in-binding>
+            <bind name="restHost" type="REST:RESTHost" export-name="restHost"/>
+            <bind name="blueprintID" type="string" export-name="blueprintID"/>
+            <bind name="blueprintVersion" type="string" export-name="blueprintVersion"/>
+            <bind name="accessToken" type="string" export-name="accessToken"/>
+        </in-binding>
+        <out-binding>
+            <bind name="blueprintYaml" type="Text" export-name="blueprintYaml"/>
+        </out-binding>
+        <position y="20.0" x="530.0"/>
+    </workflow-item>
+    <workflow-item name="item8" out-name="item4" type="task" comparator="0">
+        <display-name>Create new blueprint</display-name>
+        <script encoded="false">var blueprintContent = System.getModule("com.terasky.utils").replaceNewLineWithBackslashN(newBlueprintYaml);
+var uri = "/blueprint/api/blueprints";
+var method = "POST";
+var body = '{"name":"' + newBlueprintName + '","description":"' + newBlueprintDescription + '","content":' + blueprintContent + ',"projectId":"' + projectId + '","requestScopeOrg":"true"}';
+var request = restHost.createRequest(method , uri , body);
+request.setHeader("Authorization" , "Bearer " + accessToken);
+request.setHeader("Content-Type" , "application/json");
+var response = request.execute();
+System.log(response.contentAsString);</script>
+        <in-binding>
+            <bind name="restHost" type="REST:RESTHost" export-name="restHost"/>
+            <bind name="projectId" type="string"/>
+            <bind name="newBlueprintName" type="string" export-name="newBlueprintName"/>
+            <bind name="newBlueprintDescription" type="string" export-name="newBlueprintDescription"/>
+            <bind name="newBlueprintYaml" type="Text" export-name="newBlueprintYaml"/>
+            <bind name="accessToken" type="string" export-name="accessToken"/>
+        </in-binding>
+        <out-binding/>
+        <position y="20.0" x="1180.0"/>
+    </workflow-item>
+    <workflow-item name="item9" out-name="item16" type="task" comparator="0">
+        <display-name>Update Blueprint JSON</display-name>
+        <script encoded="false">var blueprintJsonObject = JSON.parse(blueprintJson);
+for each(var component in deploymentVMs)
+{
+    // TO DO: Update JSON with relevant Data from array of propwerties input object
+    var componentName = component.get("name");
+    var newTemplateName = component.get("tempName");
+    var imageRef = newTemplateName + "/" + snapshotName;
+    blueprintJsonObject["resources"][componentName]["properties"]["imageRef"] = imageRef;
+}
+newBlueprintJson = JSON.stringify(blueprintJsonObject);
+</script>
+        <in-binding>
+            <bind name="blueprintJson" type="string" export-name="blueprintJson"/>
+            <bind name="deploymentVMs" type="Array/Properties" export-name="deploymentVMs"/>
+            <bind name="snapshotName" type="string" export-name="snapshotName"/>
+        </in-binding>
+        <out-binding>
+            <bind name="newBlueprintJson" type="string" export-name="newBlueprintJson"/>
+        </out-binding>
+        <position y="20.0" x="920.0"/>
+    </workflow-item>
+    <workflow-item name="item10" out-name="item11" type="task" script-module="com.terasky.utils/getVraAccessToken" comparator="0">
+        <display-name>Get VRA Access Token</display-name>
+        <script encoded="false">//Auto generated script, cannot be modified !
+actionResult = System.getModule("com.terasky.utils").getVraAccessToken(username,password,restHost);
+</script>
+        <in-binding>
+            <bind name="username" type="string" export-name="username">
+                <description></description>
+            </bind>
+            <bind name="password" type="SecureString" export-name="password">
+                <description></description>
+            </bind>
+            <bind name="restHost" type="REST:RESTHost" export-name="restHost">
+                <description></description>
+            </bind>
+        </in-binding>
+        <out-binding>
+            <bind name="actionResult" type="string" export-name="accessToken"/>
+        </out-binding>
+        <description>Add a note to the workflow schema.</description>
+        <position y="20.0" x="140.0"/>
+    </workflow-item>
+    <workflow-item name="item11" out-name="item2" type="task" script-module="com.terasky.utils/getDeploymentIdByName" comparator="0">
+        <display-name>Get Deployment ID By Name</display-name>
+        <script encoded="false">//Auto generated script, cannot be modified !
+actionResult = System.getModule("com.terasky.utils").getDeploymentIdByName(accessToken,restHost,deploymentName);
+</script>
+        <in-binding>
+            <bind name="accessToken" type="string" export-name="accessToken">
+                <description></description>
+            </bind>
+            <bind name="restHost" type="REST:RESTHost" export-name="restHost">
+                <description></description>
+            </bind>
+            <bind name="deploymentName" type="string" export-name="deploymentName">
+                <description></description>
+            </bind>
+        </in-binding>
+        <out-binding>
+            <bind name="actionResult" type="string" export-name="deploymentID"/>
+        </out-binding>
+        <description>Add a note to the workflow schema.</description>
+        <position y="20.0" x="270.0"/>
+    </workflow-item>
+    <workflow-item name="item12" out-name="item15" type="task" script-module="com.terasky.utils/yaml2json_py" comparator="0">
+        <display-name>Convert YAML To JSON</display-name>
+        <script encoded="false">//Auto generated script, cannot be modified !
+actionResult = System.getModule("com.terasky.utils").yaml2json_py(yamlTxt);
+</script>
+        <in-binding>
+            <bind name="yamlTxt" type="Text" export-name="blueprintYaml">
+                <description></description>
+            </bind>
+        </in-binding>
+        <out-binding>
+            <bind name="actionResult" type="string" export-name="blueprintJson"/>
+        </out-binding>
+        <description>Add a note to the workflow schema.</description>
+        <position y="20.0" x="660.0"/>
+    </workflow-item>
+    <workflow-item name="item15" out-name="item9" type="link" linked-workflow-id="76cfd0e2-2422-49de-bc5a-5a7d1a8592a2" comparator="0">
+        <display-name>Clone and Snapshot All VMs</display-name>
+        <script encoded="false"></script>
+        <in-binding>
+            <bind name="vmFolder" type="VC:VmFolder" export-name="vmFolder"/>
+            <bind name="allVmProperties" type="Array/Properties" export-name="deploymentVMs"/>
+            <bind name="snapshotName" type="string" export-name="snapshotName"/>
+        </in-binding>
+        <out-binding/>
+        <description> </description>
+        <position y="20.0" x="790.0"/>
+    </workflow-item>
+    <workflow-item name="item16" out-name="item8" type="task" script-module="com.terasky.utils/json2yaml_py" comparator="0">
+        <display-name>Convert JSON To YAML</display-name>
+        <script encoded="false">//Auto generated script, cannot be modified !
+actionResult = System.getModule("com.terasky.utils").json2yaml_py(jsonTxt);
+</script>
+        <in-binding>
+            <bind name="jsonTxt" type="string" export-name="newBlueprintJson">
+                <description></description>
+            </bind>
+        </in-binding>
+        <out-binding>
+            <bind name="actionResult" type="Text" export-name="newBlueprintYaml"/>
+        </out-binding>
+        <description>Add a note to the workflow schema.</description>
+        <position y="20.0" x="1050.0"/>
+    </workflow-item>
+    <presentation>
+        <p-param name="prefix">
+            <desc>prefix</desc>
+        </p-param>
+    </presentation>
+    <workflow-note x="170.0" y="77.0" w="156.0" h="74.5" color="FFFFC0">
+        <description>----- add comments               
+----- add notes
+----- debug and test
+----- add error handling</description>
+    </workflow-note>
+</ns2:workflow>
