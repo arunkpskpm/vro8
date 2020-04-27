@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="getDeploymentNamesInProject" result-type="Array/string" api-version="6.0.0" id="b10fb061-5dd7-4cd0-b101-5524c4f72037" version="1.0.0" category-name="com.terasky.utils">
+  <param n="projectID" t="string"><![CDATA[]]></param>
+  <script encoded="false"><![CDATA[cec = Server.getConfigurationElementCategoryWithPath("TeraSky/Save To Catalog")
+ces = cec.configurationElements
+for each(var ce in ces)
+{
+    if(ce.name == "general config")
+    {
+        username = ce.getAttributeWithKey("username").value
+        password = ce.getAttributeWithKey("password").value
+        restHost = ce.getAttributeWithKey("vraRestHost").value
+        break
+    }
+}
+accessToken = System.getModule("com.terasky.utils").getVraAccessToken(username,password,restHost);
+
+
+// get deployment data from deployment ID
+var uri = "/deployment/api/deployments/?project=" + projectID + "&size=2000";
+var encodedUri = encodeURI(uri)
+var method = "GET";
+var body = "{}";
+var request = restHost.createRequest(method , encodedUri , body)
+request.setHeader("Authorization" , "Bearer " + accessToken)
+request.setHeader("Content-Type" , "application/json")
+var response = request.execute()
+var strResponseBody = response.contentAsString
+var jsonResponseBody = JSON.parse(strResponseBody);
+System.log(JSON.stringify(jsonResponseBody))
+var names = []
+for each(var result in jsonResponseBody.content)
+{
+    names.push(result.name)
+}
+return names]]></script>
+</dunes-script-module>
