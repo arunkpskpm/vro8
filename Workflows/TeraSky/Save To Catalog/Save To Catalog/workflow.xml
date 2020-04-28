@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item10" object-name="workflow:name=generic" id="4303308a-26e0-4901-9174-e3ccfbf7d79b" editor-version="2.0" version="1.0.0" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item10" object-name="workflow:name=generic" id="4303308a-26e0-4901-9174-e3ccfbf7d79b" editor-version="2.0" version="1.0.1" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
     <display-name>Save To Catalog</display-name>
     <description>This automation works for VRA versions 8.1 and above.</description>
     <position y="30.0" x="60.0"/>
@@ -19,7 +19,7 @@
     </input>
     <output/>
     <attrib name="accessToken" type="string">
-        <value encoded="n"/>
+        <value encoded="n"></value>
         <description>VRA Bearer Token used in all needed API calls against the VRA API</description>
     </attrib>
     <attrib name="restHost" type="REST:RESTHost" conf-id="e147e593-b897-492b-bf82-d31fc1e22861" conf-key="vraRestHost">
@@ -32,23 +32,23 @@
         <description>the password of the VRA admin user</description>
     </attrib>
     <attrib name="deploymentID" type="string">
-        <value encoded="n"/>
+        <value encoded="n"></value>
         <description>the ID of the deployment being saved as a blueprint</description>
     </attrib>
     <attrib name="blueprintID" type="string">
-        <value encoded="n"/>
+        <value encoded="n"></value>
         <description>the blueprint ID the deployment was provisioned from</description>
     </attrib>
     <attrib name="blueprintVersion" type="string">
-        <value encoded="n"/>
+        <value encoded="n"></value>
         <description>the blueprint version the deployment was provisioned from</description>
     </attrib>
     <attrib name="blueprintYaml" type="Text">
-        <value encoded="n"/>
+        <value encoded="n"></value>
         <description>the source blueprints YAML</description>
     </attrib>
     <attrib name="blueprintJson" type="string">
-        <value encoded="n"/>
+        <value encoded="n"></value>
         <description>source blueprints JSON representation</description>
     </attrib>
     <attrib name="deploymentResourcesData" type="Array/Properties">
@@ -60,11 +60,11 @@
         <description>The VM Folder object created for the blueprint during the automation</description>
     </attrib>
     <attrib name="newBlueprintYaml" type="Text">
-        <value encoded="n"/>
+        <value encoded="n"></value>
         <description>the YAML of the new blueprint</description>
     </attrib>
     <attrib name="newBlueprintJson" type="string">
-        <value encoded="n"/>
+        <value encoded="n"></value>
         <description>the JSON representation of the new blueprint</description>
     </attrib>
     <attrib name="snapshotName" type="string">
@@ -72,14 +72,14 @@
         <description>name of snashot for all new cloned vms to be used in vra blueprint to provision linked clones</description>
     </attrib>
     <attrib name="projectId" type="string">
-        <value encoded="n"/>
+        <value encoded="n"></value>
         <description>the ID of the project the deployment exists under and that the new blueprint will be created in its context</description>
     </attrib>
     <attrib name="parentVmFolder" type="VC:VmFolder" conf-id="e147e593-b897-492b-bf82-d31fc1e22861" conf-key="parentVmFolder">
         <description>the folder under which each blueprint will have a folder with its templates</description>
     </attrib>
     <attrib name="newBlueprintID" type="string">
-        <value encoded="n"/>
+        <value encoded="n"></value>
         <description>the received ID of the new blueprint after it has been created</description>
     </attrib>
     <workflow-item name="item2" out-name="item0" type="task" comparator="0">
@@ -117,16 +117,48 @@ for each (var resource in jsonResponseBody.content)
 {
 	if(resource.type == "Cloud.vSphere.Machine")
 	{
-		var vmData = new Properties()
-        vmData.put("name",resource.name)
-        vmData.put("type",resource.type)
-        vmData.put("template",resource.properties.imageRef)
-        vmData.put("vmName",resource.properties.resourceName)
-        vmData.put("vmUuid",resource.properties.instanceUUID)
-        vmData.put("tempName",prefix + "0" + count)
-        deploymentResourcesData.push(vmData)
-		count++
+		var vmData = new Properties();
+        vmData.put("name",resource.name);
+        vmData.put("type",resource.type);
+        vmData.put("template",resource.properties.imageRef);
+        vmData.put("vmName",resource.properties.resourceName);
+        vmData.put("vmUuid",resource.properties.instanceUUID);
+        var nameOk = false;
+        while(nameOK == false)
+        {
+            System.debug("Checking if the name " + prefix + "-" + count + " is available");
+            nameOK = checkNameAvailability(prefix,count);
+            System.debug("availability of the name is: " + nameOK);
+            if(nameOK == false)
+            {
+                count++;
+            }
+        }
+
+        vmData.put("tempName",prefix + "-" + count);
+        deploymentResourcesData.push(vmData);
+		count++;
 	}
+}
+
+function checkNameAvailability(prefix, number) {
+  var tempName = prefix + "-" + number;
+  var vms = VcPlugin.getAllVirtualMachines(null, tempName);
+  if(vms.length == 0)
+  {
+      return true;
+  }  
+  else
+  {
+      for each(vm in vms)
+      {
+          if(vm.name == tempName)
+          {
+              return false;
+          }
+      }
+      return true;
+  }
 }</script>
         <in-binding>
             <bind name="restHost" type="REST:RESTHost" export-name="restHost"/>
@@ -145,7 +177,7 @@ for each (var resource in jsonResponseBody.content)
     <workflow-item name="item4" type="end" end-mode="0" comparator="0">
         <in-binding/>
         <out-binding/>
-        <position y="160.0" x="760.0"/>
+        <position y="160.0" x="800.0"/>
     </workflow-item>
     <workflow-item name="item0" out-name="item12" type="task" comparator="0">
         <display-name>Get Blueprint YAML</display-name>
