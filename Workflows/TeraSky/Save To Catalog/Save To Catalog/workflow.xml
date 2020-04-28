@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item10" object-name="workflow:name=generic" id="4303308a-26e0-4901-9174-e3ccfbf7d79b" editor-version="2.0" version="0.0.2" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item10" object-name="workflow:name=generic" id="4303308a-26e0-4901-9174-e3ccfbf7d79b" editor-version="2.0" version="1.0.0" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
     <display-name>Save To Catalog</display-name>
     <description></description>
     <position y="30.0" x="60.0"/>
@@ -295,7 +295,7 @@ actionResult = System.getModule("com.terasky.utils").json2yaml_py(jsonTxt);
         <description>Simple task with custom script capability.</description>
         <position y="100.0" x="410.0"/>
     </workflow-item>
-    <workflow-item name="item18" out-name="item4" type="task" comparator="0">
+    <workflow-item name="item18" out-name="item19" type="task" comparator="0">
         <display-name>Create And Release Blueprint Version</display-name>
         <script encoded="false">// prepare variables for body of request&#13;
 var changelog = "Created Via Save To Catalog Automation"&#13;
@@ -323,6 +323,67 @@ System.log(response.contentAsString);</script>
         <description>Simple task with custom script capability.</description>
         <position y="170.0" x="420.0"/>
     </workflow-item>
+    <workflow-item name="item19" out-name="item4" type="task" comparator="0">
+        <display-name>Publish Blueprint In Service Broker</display-name>
+        <script encoded="false">// get all catalog sources the relevant project has access to&#13;
+var uri = "/catalog/api/admin/sources?projectId=" + projectId + "&amp;size=2000"&#13;
+var method = "GET";&#13;
+var body = '{}';&#13;
+var request = restHost.createRequest(method , uri , body);&#13;
+request.setHeader("Authorization" , "Bearer " + accessToken);&#13;
+request.setHeader("Content-Type" , "application/json");&#13;
+var response = request.execute();&#13;
+var jsonBody = JSON.parse(response.contentAsString);&#13;
+&#13;
+// travers the results and find the relevant catalog source id from the&#13;
+// blueprint catalog source of the relevant project&#13;
+for each(var catSource in jsonBody.content)&#13;
+{&#13;
+    if(catSource.typeId == "com.vmw.blueprint")&#13;
+    {&#13;
+        // needs to be split from previous if because the projectId value&#13;
+        // does not exist on all catalog source types and will cause errors&#13;
+        if(catSource.projectId == projectId)&#13;
+        {&#13;
+            var catSourceId = catSource.id&#13;
+            break;&#13;
+        }&#13;
+    }&#13;
+}&#13;
+&#13;
+// make sure a catalog source was found for blueprints and the relevant project&#13;
+if(catSourceId == null)&#13;
+{&#13;
+    throw "No Catalog Source exists for Blueprints in the relevant project"&#13;
+}&#13;
+&#13;
+// get the relevant catalog source JSON via API&#13;
+var uri = "/catalog/api/admin/sources/" + catSourceId&#13;
+var method = "GET";&#13;
+var body = '{}';&#13;
+var request = restHost.createRequest(method , uri , body);&#13;
+request.setHeader("Authorization" , "Bearer " + accessToken);&#13;
+request.setHeader("Content-Type" , "application/json");&#13;
+var response = request.execute();&#13;
+&#13;
+// get body of response from GET call which is the body for our next POST call&#13;
+var body = response.contentAsString&#13;
+&#13;
+// ReSync The Catalog source via API to update Service Broker with the new Blueprint&#13;
+var uri = "/catalog/api/admin/sources/"&#13;
+var method = "POST";&#13;
+var request = restHost.createRequest(method , uri , body);&#13;
+request.setHeader("Authorization" , "Bearer " + accessToken);&#13;
+request.setHeader("Content-Type" , "application/json");&#13;
+var response = request.execute();&#13;
+System.log(response.contentAsString)</script>
+        <in-binding>
+            <bind name="projectId" type="string" export-name="projectId"/>
+        </in-binding>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="170.0" x="560.0"/>
+    </workflow-item>
     <presentation>
         <p-param name="prefix">
             <desc>prefix</desc>
@@ -333,8 +394,5 @@ System.log(response.contentAsString);</script>
 ----- add notes
 ----- debug and test
 ----- add error handling</description>
-    </workflow-note>
-    <workflow-note x="529.0" y="153.5" w="166.0" h="46.0" color="ff0000">
-        <description>add code to sync the relevant content source for BP to be available in SB</description>
     </workflow-note>
 </ns2:workflow>
