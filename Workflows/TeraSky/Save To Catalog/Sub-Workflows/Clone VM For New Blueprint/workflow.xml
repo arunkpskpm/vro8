@@ -3,9 +3,18 @@
     <display-name>Clone VM For New Blueprint</display-name>
     <position y="10.0" x="50.0"/>
     <input>
-        <param name="vmFolder" type="VC:VmFolder"/>
-        <param name="newVmName" type="string"/>
-        <param name="sourceVmUuid" type="string"/>
+        <param name="vmFolder" type="VC:VmFolder">
+            <description>the VM Folder to create the new VM in</description>
+        </param>
+        <param name="newVmName" type="string">
+            <description>the name of the VM to be created</description>
+        </param>
+        <param name="sourceVmUuid" type="string">
+            <description>the UUID of the source VM to help find it in the VC inventory</description>
+        </param>
+        <param name="snapshotName" type="string">
+            <description>snapshot name for linked clone purposes to be created on the cloned VM</description>
+        </param>
     </input>
     <output/>
     <attrib name="vm" type="VC:VirtualMachine">
@@ -44,9 +53,6 @@
     <attrib name="pollRate" type="number">
         <value encoded="n">10.0</value>
     </attrib>
-    <attrib name="name" type="string">
-        <value encoded="n">ss_for_vra_blueprint</value>
-    </attrib>
     <attrib name="description" type="string">
         <value encoded="n">snapshot created via save to catalog automation</value>
     </attrib>
@@ -62,7 +68,7 @@
     <workflow-item name="item0" type="end" end-mode="0" comparator="0">
         <in-binding/>
         <out-binding/>
-        <position y="10.0" x="800.0"/>
+        <position y="10.0" x="1100.0"/>
     </workflow-item>
     <workflow-item name="item1" out-name="item2" type="task" script-module="com.vmware.library.vc.basic/cloneVM" comparator="0">
         <display-name>cloneVM</display-name>
@@ -102,9 +108,9 @@ actionResult = System.getModule("com.vmware.library.vc.basic").cloneVM(vm,vmFold
             <bind name="actionResult" type="VC:Task" export-name="cloneTask"/>
         </out-binding>
         <description>Add a note to the workflow schema.</description>
-        <position y="20.0" x="320.0"/>
+        <position y="20.0" x="400.0"/>
     </workflow-item>
-    <workflow-item name="item2" out-name="item7" type="task" script-module="com.vmware.library.vc.basic/vim3WaitTaskEnd" comparator="0">
+    <workflow-item name="item2" out-name="item10" type="task" script-module="com.vmware.library.vc.basic/vim3WaitTaskEnd" comparator="0">
         <display-name>vim3WaitTaskEnd</display-name>
         <script encoded="false">//Auto generated script, cannot be modified !
 actionResult = System.getModule("com.vmware.library.vc.basic").vim3WaitTaskEnd(task,progress,pollRate);
@@ -124,7 +130,7 @@ actionResult = System.getModule("com.vmware.library.vc.basic").vim3WaitTaskEnd(t
             <bind name="actionResult" type="VC:VirtualMachine" export-name="newVM"/>
         </out-binding>
         <description>Add a note to the workflow schema.</description>
-        <position y="20.0" x="450.0"/>
+        <position y="20.0" x="530.0"/>
     </workflow-item>
     <workflow-item name="item5" out-name="item9" type="task" script-module="com.terasky.utils/getVcVmByUuid" comparator="0">
         <display-name>Get Source Vm by UUID</display-name>
@@ -140,7 +146,7 @@ actionResult = System.getModule("com.terasky.utils").getVcVmByUuid(vmUuid);
             <bind name="actionResult" type="VC:VirtualMachine" export-name="vm"/>
         </out-binding>
         <description>Add a note to the workflow schema.</description>
-        <position y="20.0" x="120.0"/>
+        <position y="20.0" x="140.0"/>
     </workflow-item>
     <workflow-item name="item7" out-name="item8" type="task" prototype-id="sleep" content-mode="x" comparator="0">
         <display-name>Sleep</display-name>
@@ -157,16 +163,16 @@ if ( sleepTime !== null )  {
         </in-binding>
         <out-binding/>
         <description>Sleep a given number of seconds.</description>
-        <position y="20.0" x="560.0"/>
+        <position y="20.0" x="730.0"/>
     </workflow-item>
-    <workflow-item name="item8" out-name="item0" type="link" linked-workflow-id="BD80808080808080808080808080808053C180800122528313869552e41805bb1" comparator="0">
+    <workflow-item name="item8" out-name="item11" type="link" linked-workflow-id="BD80808080808080808080808080808053C180800122528313869552e41805bb1" comparator="0">
         <display-name>Create a snapshot</display-name>
         <script encoded="false"></script>
         <in-binding>
             <bind name="vm" type="VC:VirtualMachine" export-name="vm">
                 <description>Virtual machine of which to create a snapshot</description>
             </bind>
-            <bind name="name" type="string" export-name="name">
+            <bind name="name" type="string" export-name="snapshotName">
                 <description>Snapshot name. The name need not be unique for this virtual machine.</description>
             </bind>
             <bind name="description" type="string" export-name="description">
@@ -185,11 +191,14 @@ if ( sleepTime !== null )  {
             </bind>
         </out-binding>
         <description> </description>
-        <position y="20.0" x="655.0"/>
+        <position y="20.0" x="860.0"/>
     </workflow-item>
     <workflow-item name="item9" out-name="item1" type="task" comparator="0">
         <display-name>Get Resource Pool From Source VM</display-name>
-        <script encoded="false">pool = vm.resourcePool</script>
+        <script encoded="false">System.debug("Cloning the VM " + vm.name + " now");&#13;
+&#13;
+// getting the resource pool of the source VM as this is needed for cloning&#13;
+pool = vm.resourcePool;</script>
         <in-binding>
             <bind name="vm" type="VC:VirtualMachine" export-name="vm"/>
         </in-binding>
@@ -197,7 +206,28 @@ if ( sleepTime !== null )  {
             <bind name="pool" type="VC:ResourcePool" export-name="pool"/>
         </out-binding>
         <description>Simple task with custom script capability.</description>
-        <position y="20.0" x="215.0"/>
+        <position y="20.0" x="270.0"/>
+    </workflow-item>
+    <workflow-item name="item10" out-name="item7" type="task" comparator="0">
+        <display-name>Logger</display-name>
+        <script encoded="false">System.debug("Finished Cloning the vm " + vm.name);&#13;
+System.debug("Creating a snapshot for linked clone purposes on the new VM now");</script>
+        <in-binding>
+            <bind name="vm" type="VC:VirtualMachine" export-name="vm"/>
+        </in-binding>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="20.0" x="635.0"/>
+    </workflow-item>
+    <workflow-item name="item11" out-name="item0" type="task" comparator="0">
+        <display-name>Logger</display-name>
+        <script encoded="false">System.debug("finished creating the needed snapshot on the vm " + vm.name);</script>
+        <in-binding>
+            <bind name="vm" type="VC:VirtualMachine" export-name="vm"/>
+        </in-binding>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="20.0" x="975.0"/>
     </workflow-item>
     <presentation/>
 </ns2:workflow>
