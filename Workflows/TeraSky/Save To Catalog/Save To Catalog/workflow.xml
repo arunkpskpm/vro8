@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item10" object-name="workflow:name=generic" id="4303308a-26e0-4901-9174-e3ccfbf7d79b" editor-version="2.0" version="1.0.1" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item10" object-name="workflow:name=generic" id="4303308a-26e0-4901-9174-e3ccfbf7d79b" editor-version="2.0" version="1.1.0" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
     <display-name>Save To Catalog</display-name>
     <description>This automation works for VRA versions 8.1 and above.</description>
     <position y="30.0" x="60.0"/>
@@ -84,65 +84,83 @@
     </attrib>
     <workflow-item name="item2" out-name="item0" type="task" comparator="0">
         <display-name>Get Deployment Data</display-name>
-        <script encoded="false">// prepare variables
+        <script encoded="false">System.log("Retrieving Data from the source deployment")
+
+// prepare variables
 deploymentResourcesData = [];
-var count = 1
+var count = 1;
 
 // get deployment source Data
 var uri = "/deployment/api/deployments/" + deploymentID;
 var method = "GET";
 var body = "{}";
-var request = restHost.createRequest(method , uri , body)
-request.setHeader("Authorization" , "Bearer " + accessToken)
-request.setHeader("Content-Type" , "application/json")
-var response = request.execute()
-var strResponseBody = response.contentAsString
+var request = restHost.createRequest(method , uri , body);
+request.setHeader("Authorization" , "Bearer " + accessToken);
+request.setHeader("Content-Type" , "application/json");
+var response = request.execute();
+var strResponseBody = response.contentAsString;
 var jsonResponseBody = JSON.parse(strResponseBody);
-//System.log(strResponseBody)
-blueprintVersion = jsonResponseBody.blueprintVersion
-blueprintID = jsonResponseBody.blueprintId
-projectId = jsonResponseBody.projectId
+
+// set source blueprint and project data output variables
+blueprintVersion = jsonResponseBody.blueprintVersion;
+blueprintID = jsonResponseBody.blueprintId;
+projectId = jsonResponseBody.projectId;
+
 // get deployment resources from deployment ID
 var uri = "/deployment/api/deployments/" + deploymentID + "/resources";
 var method = "GET";
 var body = "{}";
-var request = restHost.createRequest(method , uri , body)
-request.setHeader("Authorization" , "Bearer " + accessToken)
-request.setHeader("Content-Type" , "application/json")
-var response = request.execute()
-var strResponseBody = response.contentAsString
+var request = restHost.createRequest(method , uri , body);
+request.setHeader("Authorization" , "Bearer " + accessToken);
+request.setHeader("Content-Type" , "application/json");
+var response = request.execute();
+var strResponseBody = response.contentAsString;
 var jsonResponseBody = JSON.parse(strResponseBody);
-System.log(strResponseBody)
+
+// traverse array of resource to find the vSphere VM components
 for each (var resource in jsonResponseBody.content)
 {
 	if(resource.type == "Cloud.vSphere.Machine")
 	{
-		var vmData = new Properties();
+		// build properties object to hold data to correlate the new VM, source VM and
+        // resource data in order to clone the VMs and create the blueprint accordingly
+        var vmData = new Properties();
         vmData.put("name",resource.name);
         vmData.put("type",resource.type);
         vmData.put("template",resource.properties.imageRef);
         vmData.put("vmName",resource.properties.resourceName);
         vmData.put("vmUuid",resource.properties.instanceUUID);
+        
+        // make sure the new VM name is unique as VRA requires names to be unique within
+        // a cloud account (vCenter) for it to be used as a template
         var nameOk = false;
         while(nameOK == false)
         {
             System.debug("Checking if the name " + prefix + "-" + count + " is available");
             nameOK = checkNameAvailability(prefix,count);
             System.debug("availability of the name is: " + nameOK);
+            
+            // if the name is not available raise the count variable and keep trying
             if(nameOK == false)
             {
                 count++;
             }
         }
-
         vmData.put("tempName",prefix + "-" + count);
+        
+        // add the properties object to the output array with the data on all VMs relevant
         deploymentResourcesData.push(vmData);
 		count++;
 	}
 }
 
+System.log("All relevant data has been retrieved from the source deployment.")
+
+// a function to check if a name is unique within all connected vCenters
 function checkNameAvailability(prefix, number) {
   var tempName = prefix + "-" + number;
+  
+  // this is the quickest way as xpath query has not been optimized since VRO 7.1
   var vms = VcPlugin.getAllVirtualMachines(null, tempName);
   if(vms.length == 0)
   {
@@ -181,7 +199,11 @@ function checkNameAvailability(prefix, number) {
     </workflow-item>
     <workflow-item name="item0" out-name="item12" type="task" comparator="0">
         <display-name>Get Blueprint YAML</display-name>
-        <script encoded="false">var uri = "/blueprint/api/blueprints/" + blueprintID + "/versions/" + blueprintVersion;
+        <script encoded="false">System.log("Retrieving the Source Blueprint")
+
+// retrieving the blueprint and its relevant version 
+// that the source deployment was provisioned from
+var uri = "/blueprint/api/blueprints/" + blueprintID + "/versions/" + blueprintVersion;
 var method = "GET";
 var body = "{}";
 uri = encodeURI(uri)
@@ -190,8 +212,14 @@ request.setHeader("Authorization" , "Bearer " + accessToken)
 request.setHeader("Content-Type" , "application/json")
 var response = request.execute()
 var jsonResponseBody = JSON.parse(response.contentAsString);
+
+// the API response is a JSON with an embedded YAML of the blueprint which is escaped.
+// in order to be able to convert the YAML to JSON we must un-escape the YAML
 yamlString = jsonResponseBody.content;
-blueprintYaml = System.getModule("com.terasky.utils").replaceBackslashNWithNewLine(yamlString);</script>
+blueprintYaml = System.getModule("com.terasky.utils").replaceBackslashNWithNewLine(yamlString);
+
+System.log("The Source Blueprint YAML has been retrieved and formatted")
+System.log("Converting the blueprint YAML now to JSON to enable data manipulation")</script>
         <in-binding>
             <bind name="restHost" type="REST:RESTHost" export-name="restHost"/>
             <bind name="blueprintID" type="string" export-name="blueprintID"/>
@@ -205,7 +233,13 @@ blueprintYaml = System.getModule("com.terasky.utils").replaceBackslashNWithNewLi
     </workflow-item>
     <workflow-item name="item8" out-name="item18" type="task" comparator="0">
         <display-name>Create new blueprint</display-name>
-        <script encoded="false">var blueprintContent = System.getModule("com.terasky.utils").replaceNewLineWithBackslashN(newBlueprintYaml);
+        <script encoded="false">System.log("New Blueprint JSON has been converted to YAML");
+System.log("Creating the new blueprint now in the VRA");
+
+// escaping the YAML so that it can be sent in the POST body JSON to VRA
+var blueprintContent = System.getModule("com.terasky.utils").replaceNewLineWithBackslashN(newBlueprintYaml);
+
+// Creating the new blueprint in the VRA
 var uri = "/blueprint/api/blueprints";
 var method = "POST";
 var body = '{"name":"' + newBlueprintName + '","description":"' + newBlueprintDescription + '","content":' + blueprintContent + ',"projectId":"' + projectId + '","requestScopeOrg":"true"}';
@@ -213,9 +247,12 @@ var request = restHost.createRequest(method , uri , body);
 request.setHeader("Authorization" , "Bearer " + accessToken);
 request.setHeader("Content-Type" , "application/json");
 var response = request.execute();
-System.log(response.contentAsString);
-var jsonBody = JSON.parse(response.contentAsString)
-newBlueprintID = jsonBody.id</script>
+
+// retrieving the new Blueprint ID for further system updates and tasks
+var jsonBody = JSON.parse(response.contentAsString);
+newBlueprintID = jsonBody.id;
+
+System.log("The New Blueprint has been created");</script>
         <in-binding>
             <bind name="restHost" type="REST:RESTHost" export-name="restHost"/>
             <bind name="projectId" type="string" export-name="projectId"/>
@@ -231,20 +268,38 @@ newBlueprintID = jsonBody.id</script>
     </workflow-item>
     <workflow-item name="item9" out-name="item16" type="task" comparator="0">
         <display-name>Update Blueprint JSON</display-name>
-        <script encoded="false">var blueprintJsonObject = JSON.parse(blueprintJson);
+        <script encoded="false">System.log("Cloning and preparing the VMs is complete");
+System.log("Updating the source blueprints JSON with the new VMs references");
+
+// convert the JSON string to an object for easy manipulation
+var blueprintJsonObject = JSON.parse(blueprintJson);
+
+// traverse the array of properties created at the start of the workflow with VM details
 for each(var component in deploymentResourcesData)
 {
     var componentName = component.get("name");
     var newTemplateName = component.get("tempName");
     var imageRef = newTemplateName + "/" + snapshotName;
+    
+    // update the image reference to the newly cloned VM
     blueprintJsonObject["resources"][componentName]["properties"]["imageRef"] = imageRef;
 }
+
+// update blueprint common values
+blueprintJsonObject.name = newBlueprintName;
+blueprintJsonObject.version = "1.0.0";
+blueprintJsonObject.formatVersion = "1";
+
+// convert the JSON object back to a string
 newBlueprintJson = JSON.stringify(blueprintJsonObject);
-</script>
+
+System.log("New Blueprint JSON has been prepared");
+System.log("Converting the new Blueprint JSON to YAML in order to import to VRA")</script>
         <in-binding>
             <bind name="blueprintJson" type="string" export-name="blueprintJson"/>
             <bind name="snapshotName" type="string" export-name="snapshotName"/>
             <bind name="deploymentResourcesData" type="Array/Properties" export-name="deploymentResourcesData"/>
+            <bind name="newBlueprintName" type="string" export-name="newBlueprintName"/>
         </in-binding>
         <out-binding>
             <bind name="newBlueprintJson" type="string" export-name="newBlueprintJson"/>
@@ -337,11 +392,18 @@ actionResult = System.getModule("com.terasky.utils").json2yaml_py(jsonTxt);
             <bind name="actionResult" type="Text" export-name="newBlueprintYaml"/>
         </out-binding>
         <description>Add a note to the workflow schema.</description>
-        <position y="170.0" x="151.0"/>
+        <position y="170.0" x="134.0"/>
     </workflow-item>
     <workflow-item name="item17" out-name="item15" type="task" comparator="0">
         <display-name>Create VM Folder for Blueprint VMs</display-name>
-        <script encoded="false">vmFolder = parentVmFolder.createFolder(newBlueprintName)</script>
+        <script encoded="false">System.log("Source Blueprint YAML has been converted to JSON")&#13;
+System.log("Creating the vCenter VM Folder for the new blueprints templates")&#13;
+&#13;
+// creating the folder for the to be cloned VMs. Each blueprint will have its own folder&#13;
+vmFolder = parentVmFolder.createFolder(newBlueprintName)&#13;
+&#13;
+System.log("The Blueprint Templates VM Folder has been created")&#13;
+System.log("Moving on to cloning the source deployments VMs and prepairing them as linked clone templates")</script>
         <in-binding>
             <bind name="parentVmFolder" type="VC:VmFolder" export-name="parentVmFolder"/>
             <bind name="newBlueprintName" type="string" export-name="newBlueprintName"/>
@@ -354,12 +416,14 @@ actionResult = System.getModule("com.terasky.utils").json2yaml_py(jsonTxt);
     </workflow-item>
     <workflow-item name="item18" out-name="item19" type="task" comparator="0">
         <display-name>Create And Release Blueprint Version</display-name>
-        <script encoded="false">// prepare variables for body of request&#13;
-var changelog = "Created Via Save To Catalog Automation"&#13;
-var user = System.getContext().getParameter("__metadata_userName")&#13;
-var description = "Created via Save To Catalog Automation. Based off of the deployment with the name: " + existingDeploymentName + " by the user: " + user&#13;
-var version = "1.0.0"&#13;
-var release = true&#13;
+        <script encoded="false">System.log("Creating a blueprint version and releasing it to the catalog");&#13;
+&#13;
+// prepare variables for body of request&#13;
+var changelog = "Created Via Save To Catalog Automation";&#13;
+var user = System.getContext().getParameter("__metadata_userName");&#13;
+var description = "Created via Save To Catalog Automation. Based off of the deployment with the name: " + existingDeploymentName + " by the user: " + user;&#13;
+var version = "1.0.0";&#13;
+var release = true;&#13;
 &#13;
 // create version of blueprint&#13;
 var uri = "/blueprint/api/blueprints/" + newBlueprintID + "/versions";&#13;
@@ -369,7 +433,8 @@ var request = restHost.createRequest(method , uri , body);&#13;
 request.setHeader("Authorization" , "Bearer " + accessToken);&#13;
 request.setHeader("Content-Type" , "application/json");&#13;
 var response = request.execute();&#13;
-System.log(response.contentAsString);</script>
+&#13;
+System.log("The New Blueprint version has been created and released");</script>
         <in-binding>
             <bind name="accessToken" type="string" export-name="accessToken"/>
             <bind name="restHost" type="REST:RESTHost" export-name="restHost"/>
@@ -382,8 +447,10 @@ System.log(response.contentAsString);</script>
     </workflow-item>
     <workflow-item name="item19" out-name="item4" type="task" comparator="0">
         <display-name>Publish Blueprint In Service Broker</display-name>
-        <script encoded="false">// get all catalog sources the relevant project has access to&#13;
-var uri = "/catalog/api/admin/sources?projectId=" + projectId + "&amp;size=2000"&#13;
+        <script encoded="false">System.log("Updating the Service Broker Catalog Source for the new Blueprint to be available");&#13;
+&#13;
+// get all catalog sources the relevant project has access to&#13;
+var uri = "/catalog/api/admin/sources?projectId=" + projectId + "&amp;size=2000";&#13;
 var method = "GET";&#13;
 var body = '{}';&#13;
 var request = restHost.createRequest(method , uri , body);&#13;
@@ -402,7 +469,7 @@ for each(var catSource in jsonBody.content)&#13;
         // does not exist on all catalog source types and will cause errors&#13;
         if(catSource.projectId == projectId)&#13;
         {&#13;
-            var catSourceId = catSource.id&#13;
+            var catSourceId = catSource.id;&#13;
             break;&#13;
         }&#13;
     }&#13;
@@ -411,11 +478,11 @@ for each(var catSource in jsonBody.content)&#13;
 // make sure a catalog source was found for blueprints and the relevant project&#13;
 if(catSourceId == null)&#13;
 {&#13;
-    throw "No Catalog Source exists for Blueprints in the relevant project"&#13;
+    throw "No Catalog Source exists for Blueprints in the relevant project";&#13;
 }&#13;
 &#13;
 // get the relevant catalog source JSON via API&#13;
-var uri = "/catalog/api/admin/sources/" + catSourceId&#13;
+var uri = "/catalog/api/admin/sources/" + catSourceId;&#13;
 var method = "GET";&#13;
 var body = '{}';&#13;
 var request = restHost.createRequest(method , uri , body);&#13;
@@ -424,16 +491,17 @@ request.setHeader("Content-Type" , "application/json");&#13;
 var response = request.execute();&#13;
 &#13;
 // get body of response from GET call which is the body for our next POST call&#13;
-var body = response.contentAsString&#13;
+var body = response.contentAsString;&#13;
 &#13;
 // ReSync The Catalog source via API to update Service Broker with the new Blueprint&#13;
-var uri = "/catalog/api/admin/sources/"&#13;
+var uri = "/catalog/api/admin/sources/";&#13;
 var method = "POST";&#13;
 var request = restHost.createRequest(method , uri , body);&#13;
 request.setHeader("Authorization" , "Bearer " + accessToken);&#13;
 request.setHeader("Content-Type" , "application/json");&#13;
 var response = request.execute();&#13;
-System.log(response.contentAsString)</script>
+&#13;
+System.log("Save To Catalog Automation Completed!");</script>
         <in-binding>
             <bind name="projectId" type="string" export-name="projectId"/>
         </in-binding>
@@ -446,10 +514,8 @@ System.log(response.contentAsString)</script>
             <desc>prefix</desc>
         </p-param>
     </presentation>
-    <workflow-note x="678.0" y="42.5" w="429.0" h="74.5" color="c0c0c0">
-        <description>----- add comments               
------ add notes
------ debug and test
------ add error handling</description>
+    <workflow-note x="8.0" y="77.5" w="136.0" h="46.0" color="FFFFC0">
+        <description>----- add error handling
+----- debug and test</description>
     </workflow-note>
 </ns2:workflow>
