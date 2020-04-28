@@ -2,10 +2,10 @@
 <ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item10" object-name="workflow:name=generic" id="4303308a-26e0-4901-9174-e3ccfbf7d79b" editor-version="2.0" version="0.0.2" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
     <display-name>Save To Catalog</display-name>
     <description></description>
-    <position y="10.0" x="50.0"/>
+    <position y="30.0" x="60.0"/>
     <input>
         <param name="prefix" type="string"/>
-        <param name="deploymentName" type="string"/>
+        <param name="existingDeploymentName" type="string"/>
         <param name="newBlueprintName" type="string"/>
         <param name="newBlueprintDescription" type="string"/>
     </input>
@@ -48,10 +48,13 @@
         <description>name of snashot for all new cloned vms to be used in vra blueprint to provision linked clones</description>
     </attrib>
     <attrib name="projectId" type="string">
-        <value encoded="n"/>
+        <value encoded="n"></value>
     </attrib>
     <attrib name="parentVmFolder" type="VC:VmFolder">
         <value encoded="n">dunes://service.dunes.ch/CustomSDKObject?id='172.16.20.2%2Cid:group-v3425'&amp;dunesName='VC:VmFolder'</value>
+    </attrib>
+    <attrib name="newBlueprintID" type="string">
+        <value encoded="n"></value>
     </attrib>
     <workflow-item name="item2" out-name="item0" type="task" comparator="0">
         <display-name>Get Deployment Data</display-name>
@@ -111,12 +114,12 @@ for each (var resource in jsonResponseBody.content)
             <bind name="deploymentVMs" type="Array/Properties" export-name="deploymentVMs"/>
             <bind name="projectId" type="string" export-name="projectId"/>
         </out-binding>
-        <position y="20.0" x="400.0"/>
+        <position y="40.0" x="410.0"/>
     </workflow-item>
     <workflow-item name="item4" type="end" end-mode="0" comparator="0">
         <in-binding/>
         <out-binding/>
-        <position y="10.0" x="1420.0"/>
+        <position y="160.0" x="760.0"/>
     </workflow-item>
     <workflow-item name="item0" out-name="item12" type="task" comparator="0">
         <display-name>Get Blueprint YAML</display-name>
@@ -140,9 +143,9 @@ blueprintYaml = System.getModule("com.terasky.utils").replaceBackslashNWithNewLi
         <out-binding>
             <bind name="blueprintYaml" type="Text" export-name="blueprintYaml"/>
         </out-binding>
-        <position y="20.0" x="530.0"/>
+        <position y="40.0" x="540.0"/>
     </workflow-item>
-    <workflow-item name="item8" out-name="item4" type="task" comparator="0">
+    <workflow-item name="item8" out-name="item18" type="task" comparator="0">
         <display-name>Create new blueprint</display-name>
         <script encoded="false">var blueprintContent = System.getModule("com.terasky.utils").replaceNewLineWithBackslashN(newBlueprintYaml);
 var uri = "/blueprint/api/blueprints";
@@ -152,7 +155,9 @@ var request = restHost.createRequest(method , uri , body);
 request.setHeader("Authorization" , "Bearer " + accessToken);
 request.setHeader("Content-Type" , "application/json");
 var response = request.execute();
-System.log(response.contentAsString);</script>
+System.log(response.contentAsString);
+var jsonBody = JSON.parse(response.contentAsString)
+newBlueprintID = jsonBody.id</script>
         <in-binding>
             <bind name="restHost" type="REST:RESTHost" export-name="restHost"/>
             <bind name="projectId" type="string" export-name="projectId"/>
@@ -161,8 +166,10 @@ System.log(response.contentAsString);</script>
             <bind name="newBlueprintYaml" type="Text" export-name="newBlueprintYaml"/>
             <bind name="accessToken" type="string" export-name="accessToken"/>
         </in-binding>
-        <out-binding/>
-        <position y="20.0" x="1250.0"/>
+        <out-binding>
+            <bind name="newBlueprintID" type="string" export-name="newBlueprintID"/>
+        </out-binding>
+        <position y="170.0" x="280.0"/>
     </workflow-item>
     <workflow-item name="item9" out-name="item16" type="task" comparator="0">
         <display-name>Update Blueprint JSON</display-name>
@@ -185,7 +192,7 @@ newBlueprintJson = JSON.stringify(blueprintJsonObject);
         <out-binding>
             <bind name="newBlueprintJson" type="string" export-name="newBlueprintJson"/>
         </out-binding>
-        <position y="20.0" x="990.0"/>
+        <position y="100.0" x="150.0"/>
     </workflow-item>
     <workflow-item name="item10" out-name="item11" type="task" script-module="com.terasky.utils/getVraAccessToken" comparator="0">
         <display-name>Get VRA Access Token</display-name>
@@ -207,7 +214,7 @@ actionResult = System.getModule("com.terasky.utils").getVraAccessToken(username,
             <bind name="actionResult" type="string" export-name="accessToken"/>
         </out-binding>
         <description>Add a note to the workflow schema.</description>
-        <position y="20.0" x="140.0"/>
+        <position y="40.0" x="150.0"/>
     </workflow-item>
     <workflow-item name="item11" out-name="item2" type="task" script-module="com.terasky.utils/getDeploymentIdByName" comparator="0">
         <display-name>Get Deployment ID By Name</display-name>
@@ -221,7 +228,7 @@ actionResult = System.getModule("com.terasky.utils").getDeploymentIdByName(acces
             <bind name="restHost" type="REST:RESTHost" export-name="restHost">
                 <description></description>
             </bind>
-            <bind name="deploymentName" type="string" export-name="deploymentName">
+            <bind name="deploymentName" type="string" export-name="existingDeploymentName">
                 <description></description>
             </bind>
         </in-binding>
@@ -229,7 +236,7 @@ actionResult = System.getModule("com.terasky.utils").getDeploymentIdByName(acces
             <bind name="actionResult" type="string" export-name="deploymentID"/>
         </out-binding>
         <description>Add a note to the workflow schema.</description>
-        <position y="20.0" x="270.0"/>
+        <position y="40.0" x="280.0"/>
     </workflow-item>
     <workflow-item name="item12" out-name="item17" type="task" script-module="com.terasky.utils/yaml2json_py" comparator="0">
         <display-name>Convert YAML To JSON</display-name>
@@ -245,7 +252,7 @@ actionResult = System.getModule("com.terasky.utils").yaml2json_py(yamlTxt);
             <bind name="actionResult" type="string" export-name="blueprintJson"/>
         </out-binding>
         <description>Add a note to the workflow schema.</description>
-        <position y="20.0" x="660.0"/>
+        <position y="100.0" x="540.0"/>
     </workflow-item>
     <workflow-item name="item15" out-name="item9" type="link" linked-workflow-id="76cfd0e2-2422-49de-bc5a-5a7d1a8592a2" comparator="0">
         <display-name>Clone and Snapshot All VMs</display-name>
@@ -257,7 +264,7 @@ actionResult = System.getModule("com.terasky.utils").yaml2json_py(yamlTxt);
         </in-binding>
         <out-binding/>
         <description> </description>
-        <position y="20.0" x="860.0"/>
+        <position y="100.0" x="280.0"/>
     </workflow-item>
     <workflow-item name="item16" out-name="item8" type="task" script-module="com.terasky.utils/json2yaml_py" comparator="0">
         <display-name>Convert JSON To YAML</display-name>
@@ -273,7 +280,7 @@ actionResult = System.getModule("com.terasky.utils").json2yaml_py(jsonTxt);
             <bind name="actionResult" type="Text" export-name="newBlueprintYaml"/>
         </out-binding>
         <description>Add a note to the workflow schema.</description>
-        <position y="20.0" x="1120.0"/>
+        <position y="170.0" x="151.0"/>
     </workflow-item>
     <workflow-item name="item17" out-name="item15" type="task" comparator="0">
         <display-name>Create VM Folder for Blueprint VMs</display-name>
@@ -286,17 +293,48 @@ actionResult = System.getModule("com.terasky.utils").json2yaml_py(jsonTxt);
             <bind name="vmFolder" type="VC:VmFolder" export-name="vmFolder"/>
         </out-binding>
         <description>Simple task with custom script capability.</description>
-        <position y="20.0" x="755.0"/>
+        <position y="100.0" x="410.0"/>
+    </workflow-item>
+    <workflow-item name="item18" out-name="item4" type="task" comparator="0">
+        <display-name>Create And Release Blueprint Version</display-name>
+        <script encoded="false">// prepare variables for body of request&#13;
+var changelog = "Created Via Save To Catalog Automation"&#13;
+var user = System.getContext().getParameter("__metadata_userName")&#13;
+var description = "Created via Save To Catalog Automation. Based off of the deployment with the name: " + existingDeploymentName + " by the user: " + user&#13;
+var version = "1.0.0"&#13;
+var release = true&#13;
+&#13;
+// create version of blueprint&#13;
+var uri = "/blueprint/api/blueprints/" + newBlueprintID + "/versions";&#13;
+var method = "POST";&#13;
+var body = '{"changeLog":"' + changelog + '","description":"' + description + '","release":' + release + ',"version":"' + version + '"}';&#13;
+var request = restHost.createRequest(method , uri , body);&#13;
+request.setHeader("Authorization" , "Bearer " + accessToken);&#13;
+request.setHeader("Content-Type" , "application/json");&#13;
+var response = request.execute();&#13;
+System.log(response.contentAsString);</script>
+        <in-binding>
+            <bind name="accessToken" type="string" export-name="accessToken"/>
+            <bind name="restHost" type="REST:RESTHost" export-name="restHost"/>
+            <bind name="newBlueprintID" type="string" export-name="newBlueprintID"/>
+            <bind name="existingDeploymentName" type="string" export-name="existingDeploymentName"/>
+        </in-binding>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="170.0" x="420.0"/>
     </workflow-item>
     <presentation>
         <p-param name="prefix">
             <desc>prefix</desc>
         </p-param>
     </presentation>
-    <workflow-note x="170.0" y="77.0" w="156.0" h="74.5" color="FFFFC0">
+    <workflow-note x="678.0" y="42.5" w="429.0" h="74.5" color="c0c0c0">
         <description>----- add comments               
 ----- add notes
 ----- debug and test
 ----- add error handling</description>
+    </workflow-note>
+    <workflow-note x="529.0" y="153.5" w="166.0" h="46.0" color="ff0000">
+        <description>add code to sync the relevant content source for BP to be available in SB</description>
     </workflow-note>
 </ns2:workflow>
