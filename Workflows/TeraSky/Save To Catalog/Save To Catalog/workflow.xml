@@ -1,65 +1,91 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item10" object-name="workflow:name=generic" id="4303308a-26e0-4901-9174-e3ccfbf7d79b" editor-version="2.0" version="1.0.0" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
     <display-name>Save To Catalog</display-name>
-    <description></description>
+    <description>This automation works for VRA versions 8.1 and above.</description>
     <position y="30.0" x="60.0"/>
     <input>
-        <param name="prefix" type="string"/>
-        <param name="existingDeploymentName" type="string"/>
-        <param name="newBlueprintName" type="string"/>
-        <param name="newBlueprintDescription" type="string"/>
+        <param name="prefix" type="string">
+            <description>the vm name prefix for building the new cloned VMs (templates) names</description>
+        </param>
+        <param name="existingDeploymentName" type="string">
+            <description>The deployment Name that this automation will clone and turn into a blueprint ready for consumption</description>
+        </param>
+        <param name="newBlueprintName" type="string">
+            <description>The Unique name of the new blueprint the automation will create</description>
+        </param>
+        <param name="newBlueprintDescription" type="string">
+            <description>The description to be added to the new Blueprint when created</description>
+        </param>
     </input>
     <output/>
     <attrib name="accessToken" type="string">
-        <value encoded="n"></value>
+        <value encoded="n"/>
+        <description>VRA Bearer Token used in all needed API calls against the VRA API</description>
     </attrib>
-    <attrib name="restHost" type="REST:RESTHost" conf-id="e147e593-b897-492b-bf82-d31fc1e22861" conf-key="vraRestHost"/>
-    <attrib name="username" type="string" conf-id="e147e593-b897-492b-bf82-d31fc1e22861" conf-key="username"/>
-    <attrib name="password" type="SecureString" conf-id="e147e593-b897-492b-bf82-d31fc1e22861" conf-key="password"/>
+    <attrib name="restHost" type="REST:RESTHost" conf-id="e147e593-b897-492b-bf82-d31fc1e22861" conf-key="vraRestHost">
+        <description>the VRA Rest API Host object</description>
+    </attrib>
+    <attrib name="username" type="string" conf-id="e147e593-b897-492b-bf82-d31fc1e22861" conf-key="username">
+        <description>the username of the VRA admin user</description>
+    </attrib>
+    <attrib name="password" type="SecureString" conf-id="e147e593-b897-492b-bf82-d31fc1e22861" conf-key="password">
+        <description>the password of the VRA admin user</description>
+    </attrib>
     <attrib name="deploymentID" type="string">
-        <value encoded="n"></value>
+        <value encoded="n"/>
+        <description>the ID of the deployment being saved as a blueprint</description>
     </attrib>
     <attrib name="blueprintID" type="string">
-        <value encoded="n"></value>
+        <value encoded="n"/>
+        <description>the blueprint ID the deployment was provisioned from</description>
     </attrib>
     <attrib name="blueprintVersion" type="string">
-        <value encoded="n"></value>
+        <value encoded="n"/>
+        <description>the blueprint version the deployment was provisioned from</description>
     </attrib>
     <attrib name="blueprintYaml" type="Text">
-        <value encoded="n"></value>
+        <value encoded="n"/>
+        <description>the source blueprints YAML</description>
     </attrib>
     <attrib name="blueprintJson" type="string">
-        <value encoded="n"></value>
+        <value encoded="n"/>
+        <description>source blueprints JSON representation</description>
     </attrib>
-    <attrib name="deploymentVMs" type="Array/Properties">
+    <attrib name="deploymentResourcesData" type="Array/Properties">
         <value encoded="n">[]</value>
+        <description>used for storing the relevant data for cloned vms and here placement in the blueprints</description>
     </attrib>
     <attrib name="vmFolder" type="VC:VmFolder">
         <value encoded="n"/>
+        <description>The VM Folder object created for the blueprint during the automation</description>
     </attrib>
     <attrib name="newBlueprintYaml" type="Text">
-        <value encoded="n"></value>
+        <value encoded="n"/>
+        <description>the YAML of the new blueprint</description>
     </attrib>
     <attrib name="newBlueprintJson" type="string">
-        <value encoded="n"></value>
+        <value encoded="n"/>
+        <description>the JSON representation of the new blueprint</description>
     </attrib>
     <attrib name="snapshotName" type="string">
         <value encoded="n">ss_for_vra_blueprint</value>
         <description>name of snashot for all new cloned vms to be used in vra blueprint to provision linked clones</description>
     </attrib>
     <attrib name="projectId" type="string">
-        <value encoded="n"></value>
+        <value encoded="n"/>
+        <description>the ID of the project the deployment exists under and that the new blueprint will be created in its context</description>
     </attrib>
-    <attrib name="parentVmFolder" type="VC:VmFolder">
-        <value encoded="n">dunes://service.dunes.ch/CustomSDKObject?id='172.16.20.2%2Cid:group-v3425'&amp;dunesName='VC:VmFolder'</value>
+    <attrib name="parentVmFolder" type="VC:VmFolder" conf-id="e147e593-b897-492b-bf82-d31fc1e22861" conf-key="parentVmFolder">
+        <description>the folder under which each blueprint will have a folder with its templates</description>
     </attrib>
     <attrib name="newBlueprintID" type="string">
-        <value encoded="n"></value>
+        <value encoded="n"/>
+        <description>the received ID of the new blueprint after it has been created</description>
     </attrib>
     <workflow-item name="item2" out-name="item0" type="task" comparator="0">
         <display-name>Get Deployment Data</display-name>
         <script encoded="false">// prepare variables
-deploymentVMs = [];
+deploymentResourcesData = [];
 var count = 1
 
 // get deployment source Data
@@ -98,7 +124,7 @@ for each (var resource in jsonResponseBody.content)
         vmData.put("vmName",resource.properties.resourceName)
         vmData.put("vmUuid",resource.properties.instanceUUID)
         vmData.put("tempName",prefix + "0" + count)
-        deploymentVMs.push(vmData)
+        deploymentResourcesData.push(vmData)
 		count++
 	}
 }</script>
@@ -111,8 +137,8 @@ for each (var resource in jsonResponseBody.content)
         <out-binding>
             <bind name="blueprintID" type="string" export-name="blueprintID"/>
             <bind name="blueprintVersion" type="string" export-name="blueprintVersion"/>
-            <bind name="deploymentVMs" type="Array/Properties" export-name="deploymentVMs"/>
             <bind name="projectId" type="string" export-name="projectId"/>
+            <bind name="deploymentResourcesData" type="Array/Properties" export-name="deploymentResourcesData"/>
         </out-binding>
         <position y="40.0" x="410.0"/>
     </workflow-item>
@@ -174,9 +200,8 @@ newBlueprintID = jsonBody.id</script>
     <workflow-item name="item9" out-name="item16" type="task" comparator="0">
         <display-name>Update Blueprint JSON</display-name>
         <script encoded="false">var blueprintJsonObject = JSON.parse(blueprintJson);
-for each(var component in deploymentVMs)
+for each(var component in deploymentResourcesData)
 {
-    // TO DO: Update JSON with relevant Data from array of propwerties input object
     var componentName = component.get("name");
     var newTemplateName = component.get("tempName");
     var imageRef = newTemplateName + "/" + snapshotName;
@@ -186,13 +211,13 @@ newBlueprintJson = JSON.stringify(blueprintJsonObject);
 </script>
         <in-binding>
             <bind name="blueprintJson" type="string" export-name="blueprintJson"/>
-            <bind name="deploymentVMs" type="Array/Properties" export-name="deploymentVMs"/>
             <bind name="snapshotName" type="string" export-name="snapshotName"/>
+            <bind name="deploymentResourcesData" type="Array/Properties" export-name="deploymentResourcesData"/>
         </in-binding>
         <out-binding>
             <bind name="newBlueprintJson" type="string" export-name="newBlueprintJson"/>
         </out-binding>
-        <position y="100.0" x="150.0"/>
+        <position y="99.5" x="132.0"/>
     </workflow-item>
     <workflow-item name="item10" out-name="item11" type="task" script-module="com.terasky.utils/getVraAccessToken" comparator="0">
         <display-name>Get VRA Access Token</display-name>
@@ -259,7 +284,7 @@ actionResult = System.getModule("com.terasky.utils").yaml2json_py(yamlTxt);
         <script encoded="false"></script>
         <in-binding>
             <bind name="vmFolder" type="VC:VmFolder" export-name="vmFolder"/>
-            <bind name="allVmProperties" type="Array/Properties" export-name="deploymentVMs"/>
+            <bind name="allVmProperties" type="Array/Properties" export-name="deploymentResourcesData"/>
             <bind name="snapshotName" type="string" export-name="snapshotName"/>
         </in-binding>
         <out-binding/>
