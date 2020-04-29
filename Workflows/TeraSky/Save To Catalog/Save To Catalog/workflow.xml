@@ -95,10 +95,10 @@ Current Limitations:
         <value encoded="n"></value>
     </attrib>
     <attrib name="cloudAccountID" type="string">
-        <value encoded="n"/>
+        <value encoded="n"></value>
     </attrib>
     <workflow-item name="item2" out-name="item0" type="task" comparator="0">
-        <display-name>Get Deployment Data</display-name>
+        <display-name>Get Dep Data</display-name>
         <script encoded="false">System.log("Retrieving Data from the source deployment")
 
 // prepare variables
@@ -223,7 +223,7 @@ function checkNameAvailability(prefix, number) {
             <bind name="deploymentResourcesData" type="Array/Properties" export-name="deploymentResourcesData"/>
             <bind name="cloudAccountID" type="string" export-name="cloudAccountID"/>
         </out-binding>
-        <position y="20.0" x="400.0"/>
+        <position y="20.769230769230766" x="401.53846153846155"/>
     </workflow-item>
     <workflow-item name="item4" type="end" end-mode="0" comparator="0">
         <in-binding/>
@@ -231,7 +231,7 @@ function checkNameAvailability(prefix, number) {
         <position y="272.3076923076923" x="41.53846153846153"/>
     </workflow-item>
     <workflow-item name="item0" out-name="item12" type="task" comparator="0">
-        <display-name>Get Blueprint YAML</display-name>
+        <display-name>Get BP YAML</display-name>
         <script encoded="false">System.log("Retrieving the Source Blueprint")
 
 // retrieving the blueprint and its relevant version 
@@ -272,7 +272,7 @@ System.log("Converting the blueprint YAML now to JSON to enable data manipulatio
         <position y="20.769230769230766" x="524.6153846153846"/>
     </workflow-item>
     <workflow-item name="item8" out-name="item18" type="task" comparator="0">
-        <display-name>Create new blueprint</display-name>
+        <display-name>Create new BP</display-name>
         <script encoded="false">System.log("New Blueprint JSON has been converted to YAML");
 System.log("Creating the new blueprint now in the VRA");
 
@@ -383,7 +383,7 @@ actionResult = System.getModule("com.terasky.utils").getVraAccessToken(username,
         <position y="20.0" x="140.0"/>
     </workflow-item>
     <workflow-item name="item11" out-name="item2" type="task" script-module="com.terasky.utils/getDeploymentIdByName" comparator="0">
-        <display-name>Get Deployment ID By Name</display-name>
+        <display-name>Get Dep ID</display-name>
         <script encoded="false">//Auto generated script, cannot be modified !
 actionResult = System.getModule("com.terasky.utils").getDeploymentIdByName(accessToken,restHost,deploymentName);
 </script>
@@ -469,7 +469,7 @@ System.log("Moving on to cloning the source deployments VMs and prepairing them 
         <position y="82.3076923076923" x="659.6923076923076"/>
     </workflow-item>
     <workflow-item name="item18" out-name="item19" type="task" comparator="0">
-        <display-name>Create And Release Blueprint Version</display-name>
+        <display-name>Create BP Version</display-name>
         <script encoded="false">System.log("Creating a blueprint version and releasing it to the catalog");&#13;
 &#13;
 // prepare variables for body of request&#13;
@@ -521,7 +521,7 @@ System.log("The New Blueprint version has been created and released");</script>
         <position y="282.3076923076923" x="378.7692307692308"/>
     </workflow-item>
     <workflow-item name="item19" out-name="item22" type="task" comparator="0">
-        <display-name>Publish Blueprint In Service Broker</display-name>
+        <display-name>Publish BP In SB</display-name>
         <script encoded="false">System.log("Updating the Service Broker Catalog Source for the new Blueprint to be available");&#13;
 &#13;
 // get all catalog sources the relevant project has access to&#13;
