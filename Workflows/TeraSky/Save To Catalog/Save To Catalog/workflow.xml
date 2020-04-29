@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item10" object-name="workflow:name=generic" id="4303308a-26e0-4901-9174-e3ccfbf7d79b" editor-version="2.0" version="1.1.0" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item10" object-name="workflow:name=generic" id="4303308a-26e0-4901-9174-e3ccfbf7d79b" editor-version="2.0" version="1.2.0" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
     <display-name>Save To Catalog</display-name>
-    <description>This automation works for VRA versions 8.1 and above.</description>
+    <description>This automation works for VRA versions 8.1 and above.
+This Automation Was written by TeraSky Modern IT and is delivered as is. 
+
+Current Limitations:
+1. only works for blueprints with single instances of a component (does not support the count field on a blueprint resource)
+2. currently supports only linked clones
+3. currently only supports Cloud.vSphere.Machine objects and no other VM types</description>
+    <error-handler name="item21" throw-bind-name="errorMessage">
+        <position y="222.85714285714286" x="65.71428571428572"/>
+    </error-handler>
     <position y="30.0" x="60.0"/>
     <input>
         <param name="prefix" type="string">
@@ -82,6 +91,9 @@
         <value encoded="n"></value>
         <description>the received ID of the new blueprint after it has been created</description>
     </attrib>
+    <attrib name="errorMessage" type="string">
+        <value encoded="n"></value>
+    </attrib>
     <workflow-item name="item2" out-name="item0" type="task" comparator="0">
         <display-name>Get Deployment Data</display-name>
         <script encoded="false">System.log("Retrieving Data from the source deployment")
@@ -98,6 +110,13 @@ var request = restHost.createRequest(method , uri , body);
 request.setHeader("Authorization" , "Bearer " + accessToken);
 request.setHeader("Content-Type" , "application/json");
 var response = request.execute();
+
+// validate the status code was within the 200 range
+if(response.statusCode.charAt(0) != "2")
+{
+    throw "error retrieving the deployment data. status code " + response.statusCode;
+}
+
 var strResponseBody = response.contentAsString;
 var jsonResponseBody = JSON.parse(strResponseBody);
 
@@ -114,6 +133,13 @@ var request = restHost.createRequest(method , uri , body);
 request.setHeader("Authorization" , "Bearer " + accessToken);
 request.setHeader("Content-Type" , "application/json");
 var response = request.execute();
+
+// validate the status code was within the 200 range
+if(response.statusCode.charAt(0) != "2")
+{
+    throw "error retrieving the deployment resources data. status code " + response.statusCode;
+}
+
 var strResponseBody = response.contentAsString;
 var jsonResponseBody = JSON.parse(strResponseBody);
 
@@ -154,7 +180,7 @@ for each (var resource in jsonResponseBody.content)
 	}
 }
 
-System.log("All relevant data has been retrieved from the source deployment.")
+System.log("All relevant data has been retrieved from the source deployment.");
 
 // a function to check if a name is unique within all connected vCenters
 function checkNameAvailability(prefix, number) {
@@ -211,6 +237,13 @@ var request = restHost.createRequest(method , uri , body)
 request.setHeader("Authorization" , "Bearer " + accessToken)
 request.setHeader("Content-Type" , "application/json")
 var response = request.execute()
+
+// validate the status code was within the 200 range
+if(response.statusCode.charAt(0) != "2")
+{
+    throw "error retrieving the source blueprint and its relevant version. status code " + response.statusCode;
+}
+
 var jsonResponseBody = JSON.parse(response.contentAsString);
 
 // the API response is a JSON with an embedded YAML of the blueprint which is escaped.
@@ -247,6 +280,20 @@ var request = restHost.createRequest(method , uri , body);
 request.setHeader("Authorization" , "Bearer " + accessToken);
 request.setHeader("Content-Type" , "application/json");
 var response = request.execute();
+
+// validate the status code was within the 200 range
+if(response.statusCode.charAt(0) != "2")
+{
+    System.warn("CONTNET: " + response.contentAsString);
+    System.warn("STATUS CODE: " + response.statusCode);
+    System.warn("HEADERS:");
+    for each(var header in response.getAllHeaders().keys)
+    {
+        System.warn("    Header: " + header);
+        System.warn("    Value:" + response.getAllHeaders().get(header));
+    }
+    throw "error submitting the new blueprint. status code " + response.statusCode;
+}
 
 // retrieving the new Blueprint ID for further system updates and tasks
 var jsonBody = JSON.parse(response.contentAsString);
@@ -420,7 +467,14 @@ System.log("Moving on to cloning the source deployments VMs and prepairing them 
 &#13;
 // prepare variables for body of request&#13;
 var changelog = "Created Via Save To Catalog Automation";&#13;
-var user = System.getContext().getParameter("__metadata_userName");&#13;
+try&#13;
+{&#13;
+    var user = System.getContext().getParameter("__metadata_userName");&#13;
+}&#13;
+catch(e)&#13;
+{&#13;
+    System.warn("Could not get username from context. if run directly from VRO you can ignore this warning");&#13;
+}&#13;
 var description = "Created via Save To Catalog Automation. Based off of the deployment with the name: " + existingDeploymentName + " by the user: " + user;&#13;
 var version = "1.0.0";&#13;
 var release = true;&#13;
@@ -433,6 +487,20 @@ var request = restHost.createRequest(method , uri , body);&#13;
 request.setHeader("Authorization" , "Bearer " + accessToken);&#13;
 request.setHeader("Content-Type" , "application/json");&#13;
 var response = request.execute();&#13;
+&#13;
+// validate the status code was within the 200 range&#13;
+if(response.statusCode.charAt(0) != "2")&#13;
+{&#13;
+    System.warn("CONTNET: " + response.contentAsString);&#13;
+    System.warn("STATUS CODE: " + response.statusCode);&#13;
+    System.warn("HEADERS:");&#13;
+    for each(var header in response.getAllHeaders().keys)&#13;
+    {&#13;
+        System.warn("    Header: " + header);&#13;
+        System.warn("    Value:" + response.getAllHeaders().get(header));&#13;
+    }&#13;
+    throw "error creating the new blueprint version. status code " + response.statusCode;&#13;
+}&#13;
 &#13;
 System.log("The New Blueprint version has been created and released");</script>
         <in-binding>
@@ -457,6 +525,13 @@ var request = restHost.createRequest(method , uri , body);&#13;
 request.setHeader("Authorization" , "Bearer " + accessToken);&#13;
 request.setHeader("Content-Type" , "application/json");&#13;
 var response = request.execute();&#13;
+&#13;
+// validate the status code was within the 200 range&#13;
+if(response.statusCode.charAt(0) != "2")&#13;
+{&#13;
+    throw "error getting the catalog sources for the relevant project. status code " + response.statusCode;&#13;
+}&#13;
+&#13;
 var jsonBody = JSON.parse(response.contentAsString);&#13;
 &#13;
 // travers the results and find the relevant catalog source id from the&#13;
@@ -490,6 +565,12 @@ request.setHeader("Authorization" , "Bearer " + accessToken);&#13;
 request.setHeader("Content-Type" , "application/json");&#13;
 var response = request.execute();&#13;
 &#13;
+// validate the status code was within the 200 range&#13;
+if(response.statusCode.charAt(0) != "2")&#13;
+{&#13;
+    throw "error getting the JSON body of the relevant catalog source. status code " + response.statusCode;&#13;
+}&#13;
+&#13;
 // get body of response from GET call which is the body for our next POST call&#13;
 var body = response.contentAsString;&#13;
 &#13;
@@ -501,6 +582,20 @@ request.setHeader("Authorization" , "Bearer " + accessToken);&#13;
 request.setHeader("Content-Type" , "application/json");&#13;
 var response = request.execute();&#13;
 &#13;
+// validate the status code was within the 200 range&#13;
+if(response.statusCode.charAt(0) != "2")&#13;
+{&#13;
+    System.warn("CONTNET: " + response.contentAsString);&#13;
+    System.warn("STATUS CODE: " + response.statusCode);&#13;
+    System.warn("HEADERS:");&#13;
+    for each(var header in response.getAllHeaders().keys)&#13;
+    {&#13;
+        System.warn("    Header: " + header);&#13;
+        System.warn("    Value:" + response.getAllHeaders().get(header));&#13;
+    }&#13;
+    throw "error re-syncing the relevant catalllog source. status code " + response.statusCode;&#13;
+}&#13;
+&#13;
 System.log("Save To Catalog Automation Completed!");</script>
         <in-binding>
             <bind name="projectId" type="string" export-name="projectId"/>
@@ -509,13 +604,30 @@ System.log("Save To Catalog Automation Completed!");</script>
         <description>Simple task with custom script capability.</description>
         <position y="170.0" x="560.0"/>
     </workflow-item>
+    <workflow-item name="item20" throw-bind-name="errorMessage" type="end" end-mode="1" comparator="0">
+        <display-name>End workflow</display-name>
+        <in-binding/>
+        <out-binding/>
+        <position y="222.85714285714286" x="808.5714285714287"/>
+    </workflow-item>
+    <workflow-item name="item21" out-name="item20" type="task" comparator="0">
+        <display-name>Scriptable task</display-name>
+        <script encoded="false">System.error("The Workflow has caught an error. please find bellow the error.");&#13;
+System.error("ERROR: " + errorMessage);&#13;
+System.error("for any assistance needed please contact your cloud automation team for further investigation of the issue")</script>
+        <in-binding>
+            <bind name="errorMessage" type="string" export-name="errorMessage"/>
+        </in-binding>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="232.35714285714286" x="336.0"/>
+    </workflow-item>
     <presentation>
         <p-param name="prefix">
             <desc>prefix</desc>
         </p-param>
     </presentation>
-    <workflow-note x="8.0" y="77.5" w="136.0" h="46.0" color="FFFFC0">
-        <description>----- add error handling
------ debug and test</description>
+    <workflow-note x="8.0" y="77.5" w="136.0" h="23.5" color="FFFFC0">
+        <description>----- debug and test</description>
     </workflow-note>
 </ns2:workflow>
