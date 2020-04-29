@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item10" object-name="workflow:name=generic" id="4303308a-26e0-4901-9174-e3ccfbf7d79b" editor-version="2.0" version="1.2.0" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item10" object-name="workflow:name=generic" id="4303308a-26e0-4901-9174-e3ccfbf7d79b" editor-version="2.0" version="1.3.0" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
     <display-name>Save To Catalog</display-name>
     <description>This automation works for VRA versions 8.1 and above.
 This Automation Was written by TeraSky Modern IT and is delivered as is. 
@@ -9,9 +9,9 @@ Current Limitations:
 2. currently supports only linked clones
 3. currently only supports Cloud.vSphere.Machine objects and no other VM types</description>
     <error-handler name="item21" throw-bind-name="errorMessage">
-        <position y="222.85714285714286" x="65.71428571428572"/>
+        <position y="149.23076923076923" x="243.07692307692332"/>
     </error-handler>
-    <position y="30.0" x="60.0"/>
+    <position y="10.0" x="50.0"/>
     <input>
         <param name="prefix" type="string">
             <description>the vm name prefix for building the new cloned VMs (templates) names</description>
@@ -94,6 +94,9 @@ Current Limitations:
     <attrib name="errorMessage" type="string">
         <value encoded="n"></value>
     </attrib>
+    <attrib name="cloudAccountID" type="string">
+        <value encoded="n"/>
+    </attrib>
     <workflow-item name="item2" out-name="item0" type="task" comparator="0">
         <display-name>Get Deployment Data</display-name>
         <script encoded="false">System.log("Retrieving Data from the source deployment")
@@ -148,7 +151,10 @@ for each (var resource in jsonResponseBody.content)
 {
 	if(resource.type == "Cloud.vSphere.Machine")
 	{
-		// build properties object to hold data to correlate the new VM, source VM and
+		// retrieve the cloud account iud for later use
+        cloudAccountID = resource.properties.endointId
+
+        // build properties object to hold data to correlate the new VM, source VM and
         // resource data in order to clone the VMs and create the blueprint accordingly
         var vmData = new Properties();
         vmData.put("name",resource.name);
@@ -215,13 +221,14 @@ function checkNameAvailability(prefix, number) {
             <bind name="blueprintVersion" type="string" export-name="blueprintVersion"/>
             <bind name="projectId" type="string" export-name="projectId"/>
             <bind name="deploymentResourcesData" type="Array/Properties" export-name="deploymentResourcesData"/>
+            <bind name="cloudAccountID" type="string" export-name="cloudAccountID"/>
         </out-binding>
-        <position y="40.0" x="410.0"/>
+        <position y="20.0" x="400.0"/>
     </workflow-item>
     <workflow-item name="item4" type="end" end-mode="0" comparator="0">
         <in-binding/>
         <out-binding/>
-        <position y="160.0" x="800.0"/>
+        <position y="272.3076923076923" x="41.53846153846153"/>
     </workflow-item>
     <workflow-item name="item0" out-name="item12" type="task" comparator="0">
         <display-name>Get Blueprint YAML</display-name>
@@ -262,7 +269,7 @@ System.log("Converting the blueprint YAML now to JSON to enable data manipulatio
         <out-binding>
             <bind name="blueprintYaml" type="Text" export-name="blueprintYaml"/>
         </out-binding>
-        <position y="40.0" x="540.0"/>
+        <position y="20.769230769230766" x="524.6153846153846"/>
     </workflow-item>
     <workflow-item name="item8" out-name="item18" type="task" comparator="0">
         <display-name>Create new blueprint</display-name>
@@ -311,7 +318,7 @@ System.log("The New Blueprint has been created");</script>
         <out-binding>
             <bind name="newBlueprintID" type="string" export-name="newBlueprintID"/>
         </out-binding>
-        <position y="170.0" x="280.0"/>
+        <position y="282.3076923076923" x="519.6153846153846"/>
     </workflow-item>
     <workflow-item name="item9" out-name="item16" type="task" comparator="0">
         <display-name>Update Blueprint JSON</display-name>
@@ -351,7 +358,7 @@ System.log("Converting the new Blueprint JSON to YAML in order to import to VRA"
         <out-binding>
             <bind name="newBlueprintJson" type="string" export-name="newBlueprintJson"/>
         </out-binding>
-        <position y="99.5" x="132.0"/>
+        <position y="220.53846153846155" x="658.4615384615385"/>
     </workflow-item>
     <workflow-item name="item10" out-name="item11" type="task" script-module="com.terasky.utils/getVraAccessToken" comparator="0">
         <display-name>Get VRA Access Token</display-name>
@@ -373,7 +380,7 @@ actionResult = System.getModule("com.terasky.utils").getVraAccessToken(username,
             <bind name="actionResult" type="string" export-name="accessToken"/>
         </out-binding>
         <description>Add a note to the workflow schema.</description>
-        <position y="40.0" x="150.0"/>
+        <position y="20.0" x="140.0"/>
     </workflow-item>
     <workflow-item name="item11" out-name="item2" type="task" script-module="com.terasky.utils/getDeploymentIdByName" comparator="0">
         <display-name>Get Deployment ID By Name</display-name>
@@ -395,7 +402,7 @@ actionResult = System.getModule("com.terasky.utils").getDeploymentIdByName(acces
             <bind name="actionResult" type="string" export-name="deploymentID"/>
         </out-binding>
         <description>Add a note to the workflow schema.</description>
-        <position y="40.0" x="280.0"/>
+        <position y="20.0" x="270.0"/>
     </workflow-item>
     <workflow-item name="item12" out-name="item17" type="task" script-module="com.terasky.utils/yaml2json_py" comparator="0">
         <display-name>Convert YAML To JSON</display-name>
@@ -411,7 +418,7 @@ actionResult = System.getModule("com.terasky.utils").yaml2json_py(yamlTxt);
             <bind name="actionResult" type="string" export-name="blueprintJson"/>
         </out-binding>
         <description>Add a note to the workflow schema.</description>
-        <position y="100.0" x="540.0"/>
+        <position y="20.0" x="660.0"/>
     </workflow-item>
     <workflow-item name="item15" out-name="item9" type="link" linked-workflow-id="76cfd0e2-2422-49de-bc5a-5a7d1a8592a2" comparator="0">
         <display-name>Clone and Snapshot All VMs</display-name>
@@ -423,7 +430,7 @@ actionResult = System.getModule("com.terasky.utils").yaml2json_py(yamlTxt);
         </in-binding>
         <out-binding/>
         <description> </description>
-        <position y="100.0" x="280.0"/>
+        <position y="157.23076923076923" x="658.6923076923076"/>
     </workflow-item>
     <workflow-item name="item16" out-name="item8" type="task" script-module="com.terasky.utils/json2yaml_py" comparator="0">
         <display-name>Convert JSON To YAML</display-name>
@@ -439,7 +446,7 @@ actionResult = System.getModule("com.terasky.utils").json2yaml_py(jsonTxt);
             <bind name="actionResult" type="Text" export-name="newBlueprintYaml"/>
         </out-binding>
         <description>Add a note to the workflow schema.</description>
-        <position y="170.0" x="134.0"/>
+        <position y="282.07692307692304" x="658.4615384615385"/>
     </workflow-item>
     <workflow-item name="item17" out-name="item15" type="task" comparator="0">
         <display-name>Create VM Folder for Blueprint VMs</display-name>
@@ -459,7 +466,7 @@ System.log("Moving on to cloning the source deployments VMs and prepairing them 
             <bind name="vmFolder" type="VC:VmFolder" export-name="vmFolder"/>
         </out-binding>
         <description>Simple task with custom script capability.</description>
-        <position y="100.0" x="410.0"/>
+        <position y="82.3076923076923" x="659.6923076923076"/>
     </workflow-item>
     <workflow-item name="item18" out-name="item19" type="task" comparator="0">
         <display-name>Create And Release Blueprint Version</display-name>
@@ -511,9 +518,9 @@ System.log("The New Blueprint version has been created and released");</script>
         </in-binding>
         <out-binding/>
         <description>Simple task with custom script capability.</description>
-        <position y="170.0" x="420.0"/>
+        <position y="282.3076923076923" x="378.7692307692308"/>
     </workflow-item>
-    <workflow-item name="item19" out-name="item4" type="task" comparator="0">
+    <workflow-item name="item19" out-name="item22" type="task" comparator="0">
         <display-name>Publish Blueprint In Service Broker</display-name>
         <script encoded="false">System.log("Updating the Service Broker Catalog Source for the new Blueprint to be available");&#13;
 &#13;
@@ -602,13 +609,13 @@ System.log("Save To Catalog Automation Completed!");</script>
         </in-binding>
         <out-binding/>
         <description>Simple task with custom script capability.</description>
-        <position y="170.0" x="560.0"/>
+        <position y="282.3076923076923" x="253.69230769230768"/>
     </workflow-item>
     <workflow-item name="item20" throw-bind-name="errorMessage" type="end" end-mode="1" comparator="0">
         <display-name>End workflow</display-name>
         <in-binding/>
         <out-binding/>
-        <position y="222.85714285714286" x="808.5714285714287"/>
+        <position y="149.23076923076923" x="503.0769230769231"/>
     </workflow-item>
     <workflow-item name="item21" out-name="item20" type="task" comparator="0">
         <display-name>Scriptable task</display-name>
@@ -620,14 +627,81 @@ System.error("for any assistance needed please contact your cloud automation tea
         </in-binding>
         <out-binding/>
         <description>Simple task with custom script capability.</description>
-        <position y="232.35714285714286" x="336.0"/>
+        <position y="159.23076923076923" x="333.0769230769233"/>
+    </workflow-item>
+    <workflow-item name="item22" out-name="item4" type="task" comparator="0">
+        <display-name>Run Image Data Collection</display-name>
+        <script encoded="false">System.log("Running Image Data Collection on the relevant cloud account in order to sync the newly cloned VMs");&#13;
+&#13;
+// Running image enumeration (data collection) on the relevant cloud account&#13;
+var uri = "/iaas/api/cloud-accounts-vsphere/" + cloudAccountID + "/private-image-enumeration";&#13;
+var method = "POST";&#13;
+var body = '{}';&#13;
+var request = restHost.createRequest(method , uri , body);&#13;
+request.setHeader("Authorization" , "Bearer " + accessToken);&#13;
+request.setHeader("Content-Type" , "application/json");&#13;
+var response = request.execute();&#13;
+&#13;
+// validate the status code was within the 200 range&#13;
+if(response.statusCode.charAt(0) != "2")&#13;
+{&#13;
+    System.warn("CONTNET: " + response.contentAsString);&#13;
+    System.warn("STATUS CODE: " + response.statusCode);&#13;
+    System.warn("HEADERS:");&#13;
+    for each(var header in response.getAllHeaders().keys)&#13;
+    {&#13;
+        System.warn("    Header: " + header);&#13;
+        System.warn("    Value:" + response.getAllHeaders().get(header));&#13;
+    }&#13;
+    throw "error submitting the new blueprint. status code " + response.statusCode;&#13;
+}&#13;
+&#13;
+System.debug("Data collection has been kicked off. now polling till complete")&#13;
+&#13;
+// polling data collection status&#13;
+var jsonBody = JSON.parse(response.contentAsString);&#13;
+var uri = jsonBody.selfLink;&#13;
+var method = "GET";&#13;
+var body = '{}';&#13;
+var request = restHost.createRequest(method , uri , body);&#13;
+request.setHeader("Authorization" , "Bearer " + accessToken);&#13;
+request.setHeader("Content-Type" , "application/json");&#13;
+var status = "INPROGRESS";&#13;
+&#13;
+// poll the status every 5 seconds&#13;
+while(status == "INPROGRESS")&#13;
+{&#13;
+    System.sleep(5000);&#13;
+    var response = request.execute();&#13;
+    var jsonBody = JSON.parse(response.contentAsString);&#13;
+    status = jsonBody.status;&#13;
+    System.debug("Data collection status: " + status);&#13;
+}&#13;
+&#13;
+// validate the data collection didnt error out&#13;
+if(status != "FINISHED")&#13;
+{&#13;
+    System.error("Data collection for the relevant cloud account failed.");&#13;
+}&#13;
+else&#13;
+{&#13;
+    System.log("Data collection has completed. The blueprint is now ready for consumption");&#13;
+}</script>
+        <in-binding>
+            <bind name="accessToken" type="string" export-name="accessToken"/>
+            <bind name="restHost" type="REST:RESTHost" export-name="restHost"/>
+            <bind name="cloudAccountID" type="string" export-name="cloudAccountID"/>
+        </in-binding>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="282.3076923076923" x="128.6153846153846"/>
     </workflow-item>
     <presentation>
         <p-param name="prefix">
             <desc>prefix</desc>
         </p-param>
     </presentation>
-    <workflow-note x="8.0" y="77.5" w="136.0" h="23.5" color="FFFFC0">
+    <workflow-note x="326.0" y="107.0" w="136.0" h="23.5" color="FFFFC0">
         <description>----- debug and test</description>
     </workflow-note>
 </ns2:workflow>
