@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item1" object-name="workflow:name=generic" id="727986ba-b7cc-4851-ac9f-759688ae5dfd" editor-version="2.0" version="1.0.0" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
+    <display-name>Provision vSphere Host</display-name>
+    <position y="50.0" x="100.0"/>
+    <input>
+        <param name="inHostname" type="string"/>
+    </input>
+    <output>
+        <param name="outVcHost" type="VC:HostSystem"/>
+    </output>
+    <attrib name="vcSdkConnection" type="VC:SdkConnection" conf-id="cc559c37-2155-42ac-a5b6-50d6b5142770" conf-key="vcSdkConnection"/>
+    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="50.0" x="300.0"/>
+    </workflow-item>
+    <workflow-item name="item1" out-name="item0" type="task" comparator="0">
+        <display-name>Scriptable task</display-name>
+        <script encoded="false">// Execute Keren PS script here with the following inputs: &#13;
+&#13;
+// https://portal.rackn.io/#/e/10.131.201.23:8092/&#13;
+// user: rocketskates &#13;
+// pass: Playt1#6&#13;
+// &#13;
+&#13;
+// 0. Get available servers from pool and get UUID (BootEnv = sledgehammer) and parameter "server-type" is ESXI&#13;
+// 1. retreive the ESXi hosts JSON file from the RackN (the JSON file is generated in advanced during the classification)&#13;
+// 2. Modify JSON according to inputs (Studio Names to clusters mapping from Keren)&#13;
+// 3. Change machine to runable (so it wil lstart executing jobs)&#13;
+// 4. change workflow on the machine to "ESXI 6.7"&#13;
+// 5. Monitor the Job &#13;
+// site (Dublin/California/Virginia)&#13;
+// studio (Slotomania / House of Fun / CC ... )&#13;
+// inIpAddress (ask keren if needed? )&#13;
+//&#13;
+&#13;
+&#13;
+&#13;
+//var vcHosts = vcSdkConnection.getAllHostSystems;&#13;
+var vcHosts = System.getModule('com.vmware.library.vc.host').getAllHostSystemsMatchingRegexp(inHostname)&#13;
+for each (var vcHost in vcHosts)&#13;
+{&#13;
+    System.log("Got host " + vcHost.name );&#13;
+    if (vcHost.name.toLowerCase() == inHostname.toLowerCase() )&#13;
+    {&#13;
+        outVcHost = vcHost ;&#13;
+        break;&#13;
+    }&#13;
+}&#13;
+&#13;
+if (outVcHost)&#13;
+{&#13;
+    System.log("found host" + outVcHost.name)&#13;
+}&#13;
+else&#13;
+{&#13;
+    System.error("Could not resolve host with name '" + inHostname + "'");&#13;
+    throw "Could not resolve host with name '" + inHostname + "'";&#13;
+}&#13;
+&#13;
+</script>
+        <in-binding>
+            <bind name="vcSdkConnection" type="VC:SdkConnection" export-name="vcSdkConnection"/>
+            <bind name="inHostname" type="string" export-name="inHostname"/>
+        </in-binding>
+        <out-binding>
+            <bind name="outVcHost" type="VC:HostSystem" export-name="outVcHost"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="160.0"/>
+    </workflow-item>
+    <presentation/>
+</ns2:workflow>

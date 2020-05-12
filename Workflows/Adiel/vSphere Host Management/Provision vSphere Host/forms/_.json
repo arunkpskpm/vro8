@@ -1,0 +1,1 @@
+{"schema":{"inHostname":{"id":"inHostname","type":{"dataType":"string"},"label":"inHostname"}},"layout":{"pages":[{"id":"page_n9eltauo","title":"General","sections":[{"id":"section_8uyfiirh","fields":[{"id":"inHostname","display":"textField"}]}]}]},"itemId":""}
